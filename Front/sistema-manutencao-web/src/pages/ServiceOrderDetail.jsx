@@ -1,175 +1,336 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { serviceOrderDetailsData } from '../data/serviceOrderDetails';
-import './ServiceOrderDetail/ServiceOrderDetail.css';
-import TabPrincipal from './ServiceOrderDetail/TabPrincipal';
-import TabHistorico from './ServiceOrderDetail/TabHistorico';
-import TabInformacoesAdicionais from './ServiceOrderDetail/TabInformacoesAdicionais';
-import TabObservacoes from './ServiceOrderDetail/TabObservacoes';
-import TabImagem from './ServiceOrderDetail/TabImagem';
+import api from '../services/api';
+import './ServiceOrderDetail.css';
 
 const ServiceOrderDetail = () => {
-    const { id } = useParams();
-    const [order, setOrder] = useState(null);
-    const [originalOrder, setOriginalOrder] = useState(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [activeTab, setActiveTab] = useState('principal');
+  const { id } = useParams();
+  const [activeTab, setActiveTab] = useState('principal');
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const orderData = serviceOrderDetailsData[id];
-        if (orderData) {
-            setOrder({...orderData});
-            setOriginalOrder({...orderData});
-        }
-    }, [id]);
+  // DADOS DA OS
+  const [os, setOs] = useState(null);
+  const [osItems, setOsItems] = useState([]);
+  const [history, setHistory] = useState([]);
+  
+  // DADOS AUXILIARES (Para os Selects)
+  const [allTechnicians, setAllTechnicians] = useState([]);
+  const [stockItems, setStockItems] = useState([]);
 
-    const handleEditToggle = () => {
-        if (!isEditing) {
-            setOriginalOrder({...order});
-        }
-        setIsEditing(!isEditing);
-    };
+  // ESTADOS DE FORMULÁRIO (Adicionar Item e Técnico)
+  const [selectedTechId, setSelectedTechId] = useState('');
+  const [itemForm, setItemForm] = useState({ idItemEstoque: '', quantidade: 1 });
 
-    const handleCancel = () => {
-        setOrder({...originalOrder});
-        setIsEditing(false);
-    };
+  // --- CARREGAMENTO ---
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // 1. Carrega OS
+      const resOs = await api.get(`/ordens-servico/${id}`);
+      setOs(resOs.data);
 
-    const handleSave = () => {
-        setOriginalOrder({...order});
-        setIsEditing(false);
-    };
+      // 2. Carrega Itens da OS (Peças)
+      const resItems = await api.get(`/ordens-servico/${id}/itens`);
+      setOsItems(resItems.data);
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setOrder(prevOrder => ({...prevOrder, [name]: value}));
-    };
+      // 3. Carrega Histórico
+      const resHist = await api.get(`/ordens-servico/${id}/historico`);
+      setHistory(resHist.data);
 
-    const handleAddTechnician = (techName) => {
-        if (techName && !order.technicians.includes(techName)) {
-            setOrder(prevOrder => ({
-                ...prevOrder,
-                technicians: [...prevOrder.technicians, techName]
-            }));
-        }
-    };
+      // 4. Carrega Listas Auxiliares (Técnicos e Estoque)
+      const resTechs = await api.get('/tecnicos?size=100');
+      setAllTechnicians(resTechs.data.content);
 
-    const handleRemoveTechnician = (techToRemove) => {
-        setOrder(prevOrder => ({
-            ...prevOrder,
-            technicians: prevOrder.technicians.filter(tech => tech !== techToRemove)
-        }));
-    };
-    
-    const handleAddImage = (imageUrl) => {
-        setOrder(prevOrder => ({
-            ...prevOrder,
-            images: [...prevOrder.images, imageUrl]
-        }));
-    };
+      const resStock = await api.get('/itens-estoque?size=100');
+      setStockItems(resStock.data.content);
 
-    const handleDeletePart = (partId) => {
-        if (window.confirm("Tem certeza que deseja excluir este item?")) {
-            setOrder(prevOrder => ({
-                ...prevOrder,
-                parts: prevOrder.parts.filter(part => part.id !== partId)
-            }));
-        }
-    };
-
-    const handleUpdatePart = (updatedPart) => {
-        setOrder(prevOrder => ({
-            ...prevOrder,
-            parts: prevOrder.parts.map(part => part.id === updatedPart.id ? updatedPart : part)
-        }));
-    };
-    
-    const handleAddNewPart = (newPart) => {
-        const finalNewPart = {
-            ...newPart,
-            quantity: Number(newPart.quantity),
-            unitValue: Number(newPart.unitValue)
-        };
-        setOrder(prevOrder => ({
-            ...prevOrder,
-            parts: [...prevOrder.parts, finalNewPart]
-        }));
-    };
-
-    if (!order) {
-        return <div className="container">Carregando... ou Ordem de Serviço não encontrada.</div>;
+    } catch (error) {
+      console.error("Erro ao carregar detalhes", error);
+      alert("Erro ao carregar dados.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const renderTabContent = () => {
-        switch (activeTab) {
-            case 'principal':
-                return <TabPrincipal 
-                    order={order} 
-                    isEditing={isEditing}
-                    onInputChange={handleInputChange} 
-                    onAddTechnician={handleAddTechnician}
-                    onRemoveTechnician={handleRemoveTechnician}
-                    onAddNewPart={handleAddNewPart}
-                    onDeletePart={handleDeletePart}
-                    onUpdatePart={handleUpdatePart}
-                />;
-            case 'historico':
-                return <TabHistorico history={order.statusHistory} />;
-            case 'informacoes':
-                 return <TabInformacoesAdicionais 
-                    order={order} 
-                    isEditing={isEditing} 
-                    onInfoChange={handleInputChange} 
-                 />;
-            case 'observacoes':
-                 return <TabObservacoes 
-                    order={order} 
-                    isEditing={isEditing} 
-                    onInfoChange={handleInputChange} 
-                 />;
-            case 'imagem':
-                return <TabImagem 
-                    images={order.images} 
-                    isEditing={isEditing}
-                    onAddImage={handleAddImage} 
-                />;
-            default:
-                return null;
-        }
-    };
+  useEffect(() => {
+    loadData();
+  }, [id]);
 
-    return (
-        <div className="container">
-            <div className="page-header">
-                <div className="page-header-left">
-                    <Link to="/ordens-de-servico" className="btn btn-secondary btn-back">&larr; Voltar</Link>
-                    <h1>Ordem de Serviço - Orçamento</h1>
-                </div>
-                <div className="page-header-right">
-                    <button className="btn btn-secondary">+ Novo</button>
-                    {isEditing ? (
-                        <button className="btn btn-secondary" onClick={handleCancel}>Cancelar</button>
-                    ) : (
-                        <button className="btn btn-secondary" onClick={handleEditToggle}>Editar</button>
-                    )}
-                    <button className="btn btn-primary" onClick={handleSave} disabled={!isEditing}>Salvar</button>
-                    <button className="btn btn-danger">Excluir</button>
-                </div>
-            </div>
+  // --- AÇÕES: PRINCIPAL (Salvar edições) ---
+  const handleUpdateOs = async () => {
+    try {
+      await api.put(`/ordens-servico/${id}`, os);
+      alert("Dados atualizados!");
+      loadData(); // Recarrega para garantir histórico e dados frescos
+    } catch (error) {
+      alert("Erro ao atualizar.");
+    }
+  };
 
-            <div className="tabs">
-                <button onClick={() => setActiveTab('principal')} className={activeTab === 'principal' ? 'active' : ''}>Principal</button>
-                <button onClick={() => setActiveTab('informacoes')} className={activeTab === 'informacoes' ? 'active' : ''}>Informações Adicionais</button>
-                <button onClick={() => setActiveTab('observacoes')} className={activeTab === 'observacoes' ? 'active' : ''}>Observações</button>
-                <button onClick={() => setActiveTab('historico')} className={activeTab === 'historico' ? 'active' : ''}>Histórico de Status</button>
-                <button onClick={() => setActiveTab('imagem')} className={activeTab === 'imagem' ? 'active' : ''}>Imagem</button>
-            </div>
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setOs(prev => ({ ...prev, [name]: value }));
+  };
 
-            <div className="tab-content">
-                {renderTabContent()}
-            </div>
-        </div>
-    );
+  // --- AÇÕES: TÉCNICOS ---
+  const handleAddTechnician = async () => {
+    if (!selectedTechId) return;
+    const currentIds = os.tecnicos || [];
+    if (currentIds.includes(Number(selectedTechId))) {
+        return alert("Técnico já adicionado.");
+    }
+    const newIds = [...currentIds, Number(selectedTechId)];
+
+    try {
+        await api.post(`/ordens-servico/${id}/tecnicos`, newIds);
+        setSelectedTechId('');
+        loadData(); 
+    } catch (error) {
+        alert("Erro ao atribuir técnico.");
+    }
+  };
+
+  const handleRemoveTechnician = async (techId) => {
+      const newIds = os.tecnicos.filter(id => id !== techId);
+      try {
+          await api.post(`/ordens-servico/${id}/tecnicos`, newIds);
+          loadData();
+      } catch (error) {
+          alert("Erro ao remover técnico.");
+      }
+  };
+
+  // --- AÇÕES: ITENS (PEÇAS) ---
+  const handleAddItem = async () => {
+      if (!itemForm.idItemEstoque || itemForm.quantidade <= 0) return alert("Selecione item e quantidade.");
+      
+      try {
+          await api.post(`/ordens-servico/${id}/itens`, {
+              idItemEstoque: itemForm.idItemEstoque,
+              quantidade: itemForm.quantidade
+          });
+          setItemForm({ idItemEstoque: '', quantidade: 1 });
+          const resItems = await api.get(`/ordens-servico/${id}/itens`);
+          setOsItems(resItems.data);
+      } catch (error) {
+          console.error(error);
+          alert("Erro ao adicionar item. Verifique se há estoque suficiente.");
+      }
+  };
+
+  const handleRemoveItem = async (itemId) => {
+      if(window.confirm("Remover peça e devolver ao estoque?")) {
+          try {
+              await api.delete(`/ordens-servico/itens/${itemId}`);
+              const resItems = await api.get(`/ordens-servico/${id}/itens`);
+              setOsItems(resItems.data);
+          } catch (error) {
+              alert("Erro ao remover item.");
+          }
+      }
+  };
+
+  // --- HELPER DE COR ---
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'ABERTA': return '#3b82f6';
+      case 'EM_ANDAMENTO': return '#eab308';
+      case 'AGUARDANDO_PECAS': return '#f97316';
+      case 'CONCLUIDA': return '#22c55e'; 
+      case 'CANCELADA': return '#ef4444'; 
+      default: return '#64748b';
+    }
+  };
+
+  if (loading || !os) return <div className="container"><p>Carregando...</p></div>;
+
+  return (
+    <div className="container">
+      <div className="page-header">
+         <div className="page-header-left">
+            <Link to="/ordens-de-servico" className="btn btn-secondary btn-back">&larr; Voltar</Link>
+            <h1>Ordem de Serviço #{os.numeroOs}</h1>
+         </div>
+         <div className="status-badge" style={{backgroundColor: getStatusColor(os.status)}}>
+             {os.status}
+         </div>
+      </div>
+
+      {/* CABEÇALHO RESUMO */}
+      <div className="os-detail-header">
+         <div className="os-info-grid" style={{width: '100%'}}>
+             <div>
+                 <span className="info-label">Equipamento</span>
+                 <span className="info-value">{os.nomeEquipamento}</span>
+             </div>
+             <div>
+                 <span className="info-label">Data Abertura</span>
+                 <span className="info-value">{new Date(os.dataEmissao).toLocaleDateString()}</span>
+             </div>
+             <div>
+                 <span className="info-label">Setor</span>
+                 <span className="info-value">{os.setorLocalizacao || '-'}</span>
+             </div>
+         </div>
+         {os.fotoEquipamento && (
+             <img src={os.fotoEquipamento} alt="Equipamento" style={{width: 80, height: 80, objectFit: 'cover', borderRadius: 8, marginLeft: 20}} />
+         )}
+      </div>
+
+      {/* TABS DE NAVEGAÇÃO */}
+      <div className="tabs-header">
+          <button className={`tab-btn ${activeTab === 'principal' ? 'active' : ''}`} onClick={() => setActiveTab('principal')}>Principal</button>
+          <button className={`tab-btn ${activeTab === 'pecas' ? 'active' : ''}`} onClick={() => setActiveTab('pecas')}>Peças e Materiais</button>
+          <button className={`tab-btn ${activeTab === 'tecnicos' ? 'active' : ''}`} onClick={() => setActiveTab('tecnicos')}>Técnicos</button>
+          <button className={`tab-btn ${activeTab === 'historico' ? 'active' : ''}`} onClick={() => setActiveTab('historico')}>Histórico</button>
+      </div>
+
+      <div className="tab-content">
+          
+          {/* ABA PRINCIPAL */}
+          {activeTab === 'principal' && (
+              <div>
+                  <div style={{display: 'flex', gap: '1rem', marginBottom: '1rem'}}>
+                      <div className="form-group" style={{flex: 1}}>
+                          <label>Status Atual</label>
+                          <select name="status" value={os.status} onChange={handleInputChange} className="form-select">
+                              <option value="ABERTA">ABERTA</option>
+                              <option value="EM_ANDAMENTO">EM ANDAMENTO</option>
+                              <option value="AGUARDANDO_PECAS">AGUARDANDO PEÇAS</option>
+                              <option value="CONCLUIDA">CONCLUÍDA</option>
+                              <option value="CANCELADA">CANCELADA</option>
+                          </select>
+                      </div>
+                      <div className="form-group" style={{flex: 1}}>
+                          <label>Data Início</label>
+                          <input type="date" name="dataInicio" value={os.dataInicio ? os.dataInicio.split('T')[0] : ''} onChange={handleInputChange} />
+                      </div>
+                      <div className="form-group" style={{flex: 1}}>
+                          <label>Data Fim (Conclusão)</label>
+                          <input type="date" name="dataFim" value={os.dataFim ? os.dataFim.split('T')[0] : ''} onChange={handleInputChange} />
+                      </div>
+                  </div>
+
+                  <div className="form-group">
+                      <label>Descrição do Problema</label>
+                      <textarea name="problema" rows="3" value={os.problema} onChange={handleInputChange} />
+                  </div>
+                  <div className="form-group">
+                      <label>Defeito Constatado (Técnico)</label>
+                      <textarea name="defeitoConstatado" rows="3" value={os.defeitoConstatado || ''} onChange={handleInputChange} placeholder="Diagnóstico técnico..." />
+                  </div>
+                  <div className="form-group">
+                      <label>Ações Realizadas / Solução</label>
+                      <textarea name="acoesARealizar" rows="3" value={os.acoesARealizar || ''} onChange={handleInputChange} placeholder="O que foi feito..." />
+                  </div>
+
+                  <button className="btn btn-primary" onClick={handleUpdateOs}>Salvar Alterações</button>
+              </div>
+          )}
+
+          {/* ABA PEÇAS */}
+          {activeTab === 'pecas' && (
+              <div>
+                  <div style={{display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '2rem', background: '#f8fafc', padding: '1rem', borderRadius: 8}}>
+                      <div style={{flex: 2}}>
+                          <label style={{fontSize: '0.9rem'}}>Adicionar Peça do Estoque</label>
+                          <select className="form-select" value={itemForm.idItemEstoque} onChange={e => setItemForm({...itemForm, idItemEstoque: e.target.value})}>
+                              <option value="">Selecione...</option>
+                              {stockItems.map(i => (
+                                  <option key={i.id} value={i.id}>{i.nome} (Estoque: {i.quantidade}) - R$ {i.valorUnitario}</option>
+                              ))}
+                          </select>
+                      </div>
+                      <div style={{flex: 1}}>
+                          <label style={{fontSize: '0.9rem'}}>Qtd.</label>
+                          <input type="number" min="1" value={itemForm.quantidade} onChange={e => setItemForm({...itemForm, quantidade: e.target.value})} />
+                      </div>
+                      <button className="btn btn-primary" onClick={handleAddItem}>+ Adicionar</button>
+                  </div>
+
+                  <table>
+                      <thead>
+                          <tr>
+                              <th>Item</th>
+                              <th>Qtd</th>
+                              <th>Valor Un.</th>
+                              <th>Total</th>
+                              <th>Ações</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {osItems.map(item => (
+                              <tr key={item.id}>
+                                  <td>{item.nomeItem}</td>
+                                  <td>{item.quantidade}</td>
+                                  <td>R$ {item.valorUnitario.toFixed(2)}</td>
+                                  <td>R$ {item.valorTotal.toFixed(2)}</td>
+                                  <td>
+                                      <button className="btn btn-danger" style={{fontSize: '0.8rem'}} onClick={() => handleRemoveItem(item.id)}>Remover</button>
+                                  </td>
+                              </tr>
+                          ))}
+                      </tbody>
+                  </table>
+                  <div className="totals-row">
+                      Total Peças: R$ {osItems.reduce((acc, i) => acc + i.valorTotal, 0).toFixed(2)}
+                  </div>
+              </div>
+          )}
+
+          {/* ABA TÉCNICOS */}
+          {activeTab === 'tecnicos' && (
+              <div>
+                  <div style={{display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '2rem'}}>
+                      <div style={{flex: 1}}>
+                          <label>Atribuir Técnico</label>
+                          <select className="form-select" value={selectedTechId} onChange={e => setSelectedTechId(e.target.value)}>
+                              <option value="">Selecione...</option>
+                              {allTechnicians.map(t => (
+                                  <option key={t.id} value={t.id}>{t.nome} ({t.especialidade})</option>
+                              ))}
+                          </select>
+                      </div>
+                      <button className="btn btn-primary" onClick={handleAddTechnician}>+ Adicionar à Equipe</button>
+                  </div>
+
+                  <h4>Equipe Alocada:</h4>
+                  <ul style={{listStyle: 'none', padding: 0, marginTop: '1rem'}}>
+                      {os.tecnicos && os.tecnicos.length > 0 ? (
+                          os.tecnicos.map(techId => {
+                              const tech = allTechnicians.find(t => t.id === techId);
+                              return tech ? (
+                                  <li key={techId} style={{padding: '10px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between'}}>
+                                      <span><strong>{tech.nome}</strong> - {tech.especialidade}</span>
+                                      <button className="btn btn-danger" style={{padding: '2px 8px', fontSize: '0.8rem'}} onClick={() => handleRemoveTechnician(techId)}>Remover</button>
+                                  </li>
+                              ) : null;
+                          })
+                      ) : <p>Nenhum técnico atribuído.</p>}
+                  </ul>
+              </div>
+          )}
+
+          {/* ABA HISTÓRICO */}
+          {activeTab === 'historico' && (
+              <div>
+                  <ul style={{borderLeft: '2px solid #e2e8f0', paddingLeft: '20px', listStyle: 'none'}}>
+                      {history.map(h => (
+                          <li key={h.id} style={{marginBottom: '20px', position: 'relative'}}>
+                              <div style={{position: 'absolute', left: '-29px', top: '0', width: '16px', height: '16px', borderRadius: '50%', background: '#3b82f6'}}></div>
+                              <p style={{margin: 0, fontSize: '0.85rem', color: '#64748b'}}>{new Date(h.dataEvento).toLocaleString()}</p>
+                              <p style={{margin: '5px 0 0 0', fontWeight: 'bold'}}>{h.status}</p>
+                              <p style={{margin: 0}}>{h.descricao}</p>
+                          </li>
+                      ))}
+                  </ul>
+              </div>
+          )}
+
+      </div>
+    </div>
+  );
 };
 
 export default ServiceOrderDetail;

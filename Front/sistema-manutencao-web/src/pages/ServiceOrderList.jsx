@@ -9,10 +9,12 @@ const ServiceOrderList = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/ordens-servico?size=100'); // Traz as 100 últimas
+      // Aqui a URL é fixa, não depende de ID, então não vai dar "undefined"
+      const response = await api.get('/ordens-servico?size=100'); 
       setOrders(response.data.content);
     } catch (error) {
       console.error("Erro ao buscar OS:", error);
+      alert("Erro ao carregar ordens de serviço.");
     } finally {
       setLoading(false);
     }
@@ -22,15 +24,14 @@ const ServiceOrderList = () => {
     fetchOrders();
   }, []);
 
-  // Função utilitária para cor do status
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ABERTA': return '#3b82f6'; // Azul
-      case 'EM_ANDAMENTO': return '#eab308'; // Amarelo
-      case 'AGUARDANDO_PECAS': return '#f97316'; // Laranja
-      case 'CONCLUIDA': return '#22c55e'; // Verde
-      case 'CANCELADA': return '#ef4444'; // Vermelho
-      default: return '#64748b'; // Cinza
+      case 'ABERTA': return '#3b82f6';
+      case 'EM_ANDAMENTO': return '#eab308';
+      case 'AGUARDANDO_PECAS': return '#f97316';
+      case 'CONCLUIDA': return '#22c55e';
+      case 'CANCELADA': return '#ef4444';
+      default: return '#64748b';
     }
   };
 
