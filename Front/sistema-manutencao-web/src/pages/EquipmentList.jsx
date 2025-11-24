@@ -1,0 +1,264 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import Modal from '../components/Modal';
+import api from '../services/api';
+
+const EquipmentList = () => {
+  const [equipments, setEquipments] = useState([]);
+  const [brands, setBrands] = useState([]); // Estado para guardar as marcas da API
+  const [loading, setLoading] = useState(true);
+  
+  // Modais
+  const [isAddModalOpen, setAddModalOpen] = useState(false);
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [isPhotoModalOpen, setPhotoModalOpen] = useState(false);
+  
+  // Estados de Seleção
+  const [currentEquipment, setCurrentEquipment] = useState(null);
+  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState('');
+
+  // Estados dos Formulários
+  const [name, setName] = useState('');
+  const [brandId, setBrandId] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+
+  // --- BUSCAR DADOS (EQUIPAMENTOS E MARCAS) ---
+  
+  const fetchBrands = async () => {
+    try {
+      // Busca as marcas para preencher o Select
+      // size=100 garante que venham todas (ou quase todas) para o dropdown
+      const response = await api.get('/marcas?size=100&sort=nome'); 
+      setBrands(response.data.content);
+    } catch (error) {
+      console.error("Erro ao buscar marcas:", error);
+    }
+  };
+
+  const fetchEquipments = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/equipamentos?size=1000');
+      
+      const adaptedData = response.data.content.map(item => ({
+        id: item.id,
+        name: item.nome, // O DTO do equipamento retorna 'nome'
+        brand: item.marca ? item.marca.name : '...', // O DTO da Marca dentro do Equipamento retorna 'name'
+        brandId: item.marca ? item.marca.id : '',
+        photoUrl: item.foto
+      }));
+
+      setEquipments(adaptedData);
+    } catch (error) {
+      console.error("Erro ao buscar equipamentos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBrands();     // Carrega as marcas
+    fetchEquipments(); // Carrega os equipamentos
+  }, []);
+
+  // --- HANDLERS VISUAIS ---
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const resetForm = () => {
+    setName('');
+    setBrandId('');
+    setSelectedFile(null);
+    setPreviewUrl('');
+  };
+
+  const openAddModal = () => {
+    resetForm();
+    setAddModalOpen(true);
+  };
+
+  const openEditModal = (eq) => {
+    setCurrentEquipment(eq);
+    setName(eq.name);
+    setBrandId(eq.brandId); // Agora usamos o ID real que veio do banco
+    setPreviewUrl(eq.photoUrl); 
+    setSelectedFile(null); 
+    setEditModalOpen(true);
+  };
+
+  // --- AÇÕES DE API ---
+
+  const handleAddEquipment = async () => {
+    if (!name || !brandId) {
+      alert('Nome e Marca são obrigatórios.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('nome', name);
+    formData.append('idMarca', brandId); 
+    if (selectedFile) {
+      formData.append('foto', selectedFile);
+    }
+
+    try {
+      await api.post('/equipamentos', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      alert('Equipamento criado com sucesso!');
+      setAddModalOpen(false);
+      fetchEquipments();
+    } catch (error) {
+      console.error("Erro ao criar:", error);
+      alert("Erro ao criar equipamento.");
+    }
+  };
+
+  const handleUpdateEquipment = async () => {
+    if (!currentEquipment) return;
+
+    const formData = new FormData();
+    formData.append('nome', name);
+    if (brandId) formData.append('idMarca', brandId);
+    if (selectedFile) {
+      formData.append('foto', selectedFile);
+    }
+
+    try {
+      await api.put(`/equipamentos/${currentEquipment.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      alert('Equipamento atualizado!');
+      setEditModalOpen(false);
+      fetchEquipments();
+    } catch (error) {
+      console.error("Erro ao atualizar:", error);
+      alert("Erro ao atualizar.");
+    }
+  };
+
+  const handleDeleteClick = async (id) => {
+    if (window.confirm("Excluir equipamento?")) {
+      try {
+        await api.delete(`/equipamentos/${id}`);
+        setEquipments(prev => prev.filter(e => e.id !== id));
+      } catch (error) {
+        alert("Erro ao excluir.");
+      }
+    }
+  };
+
+  return (
+    <div className="container">
+      <div className="page-header">
+        <div className="page-header-left">
+          <Link to="/" className="btn btn-secondary btn-back">&larr; Voltar</Link>
+          <h1>Cadastro de Equipamentos</h1>
+        </div>
+        <button className="btn btn-primary" onClick={openAddModal}>+ Adicionar Equipamento</button>
+      </div>
+
+      <div className="table-wrapper">
+        {loading ? <p>Carregando...</p> : (
+          <table>
+            <thead>
+              <tr>
+                <th>Foto</th>
+                <th>Nome</th>
+                <th>Marca</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {equipments.map((eq) => (
+                <tr key={eq.id}>
+                  <td>
+                    <img 
+                      src={eq.photoUrl || 'https://via.placeholder.com/40?text=?'} 
+                      alt="Foto" 
+                      className="table-photo-thumb"
+                      onClick={() => { setSelectedPhotoUrl(eq.photoUrl); setPhotoModalOpen(true); }}
+                    />
+                  </td>
+                  <td>{eq.name}</td>
+                  <td>{eq.brand}</td>
+                  <td>
+                    <button className="btn btn-secondary" onClick={() => openEditModal(eq)}>Editar</button>
+                    <button className="btn btn-danger" style={{marginLeft: '5px'}} onClick={() => handleDeleteClick(eq.id)}>Excluir</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* MODAL ADICIONAR */}
+      <Modal isOpen={isAddModalOpen} onClose={() => setAddModalOpen(false)} title="Novo Equipamento">
+         <div className="form-group">
+            <label>Nome</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} />
+         </div>
+         <div className="form-group">
+            <label>Marca</label>
+            <select value={brandId} onChange={e => setBrandId(e.target.value)} className="form-select">
+              <option value="">Selecione...</option>
+              {brands.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+            {brands.length === 0 && <small style={{color: 'red'}}>Nenhuma marca cadastrada no sistema.</small>}
+         </div>
+         <div className="form-group">
+            <label>Foto</label>
+            <input type="file" accept="image/*" onChange={handleFileChange} />
+            {previewUrl && <img src={previewUrl} alt="Preview" style={{marginTop: 10, maxHeight: 100}} />}
+         </div>
+         <div className="modal-actions">
+           <button className="btn btn-secondary" onClick={() => setAddModalOpen(false)}>Cancelar</button>
+           <button className="btn btn-primary" onClick={handleAddEquipment}>Salvar</button>
+         </div>
+      </Modal>
+
+      {/* MODAL EDITAR */}
+      <Modal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)} title="Editar Equipamento">
+         <div className="form-group">
+            <label>Nome</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} />
+         </div>
+         <div className="form-group">
+            <label>Marca</label>
+            <select value={brandId} onChange={e => setBrandId(e.target.value)} className="form-select">
+              <option value="">Selecione...</option>
+              {brands.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+         </div>
+         <div className="form-group">
+            <label>Trocar Foto (Opcional)</label>
+            <input type="file" accept="image/*" onChange={handleFileChange} />
+            {previewUrl && <p style={{fontSize: '12px'}}>Foto atual/selecionada:</p>}
+            {previewUrl && <img src={previewUrl} alt="Preview" style={{maxHeight: 100}} />}
+         </div>
+         <div className="modal-actions">
+           <button className="btn btn-secondary" onClick={() => setEditModalOpen(false)}>Cancelar</button>
+           <button className="btn btn-primary" onClick={handleUpdateEquipment}>Salvar</button>
+         </div>
+      </Modal>
+
+      {/* MODAL FOTO GRANDE */}
+      <Modal isOpen={isPhotoModalOpen} onClose={() => setPhotoModalOpen(false)} title="Visualizar Foto">
+        <img src={selectedPhotoUrl} alt="Grande" className="photo-modal-img" />
+      </Modal>
+    </div>
+  );
+};
+
+export default EquipmentList;
