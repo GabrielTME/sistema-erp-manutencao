@@ -1,20 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { serviceOrdersData } from '../data/serviceOrders';
+import api from '../services/api';
 
 const ServiceOrderList = () => {
-  const [orders, setOrders] = useState(serviceOrdersData);
-  
-  const getStatusTag = (status) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/ordens-servico?size=100'); // Traz as 100 últimas
+      setOrders(response.data.content);
+    } catch (error) {
+      console.error("Erro ao buscar OS:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  // Função utilitária para cor do status
+  const getStatusColor = (status) => {
     switch (status) {
-      case 'Em Andamento':
-        return <span className="status-tag in-progress">{status}</span>;
-      case 'Concluído':
-        return <span className="status-tag completed">{status}</span>;
-      case 'Aguardando Peças':
-        return <span className="status-tag pending-parts">{status}</span>;
-      default:
-        return <span className="status-tag">{status}</span>;
+      case 'ABERTA': return '#3b82f6'; // Azul
+      case 'EM_ANDAMENTO': return '#eab308'; // Amarelo
+      case 'AGUARDANDO_PECAS': return '#f97316'; // Laranja
+      case 'CONCLUIDA': return '#22c55e'; // Verde
+      case 'CANCELADA': return '#ef4444'; // Vermelho
+      default: return '#64748b'; // Cinza
     }
   };
 
@@ -22,79 +38,65 @@ const ServiceOrderList = () => {
     <div className="container">
       <div className="page-header">
         <div className="page-header-left">
-          <Link to="/" className="btn btn-secondary btn-back">&larr; Voltar</Link>
-          <h1>Consulta de Ordens de Serviço</h1>
+           <Link to="/" className="btn btn-secondary btn-back">&larr; Voltar</Link>
+           <h1>Ordens de Serviço</h1>
         </div>
-        <div>
-          <Link to="/ordens-de-servico/nova" className="btn btn-primary">+ Nova O.S.</Link>
-          <button className="btn btn-secondary" style={{ marginLeft: '0.5rem' }}>Imprimir</button>
-        </div>
-      </div>
-      
-      <div className="filter-box">
-        <h4>Filtros de Pesquisa</h4>
-        <div className="filter-grid">
-          <div className="form-group">
-            <label>Problema</label>
-            <input type="text" />
-          </div>
-          <div className="form-group">
-            <label>Modelo</label>
-            <input type="text" />
-          </div>
-          <div className="form-group">
-            <label>Localização Física da Máquina</label>
-            <input type="text" placeholder="Ex: Setor A - Bloco C"/>
-          </div>
-          <div className="form-group">
-            <label>Situação</label>
-            <select className="form-select">
-              <option>Todas</option>
-              <option>Em Andamento</option>
-              <option>Concluído</option>
-              <option>Aguardando Peças</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Data O.S. (Início)</label>
-            <input type="date" />
-          </div>
-          <div className="form-group">
-            <label>Data O.S. (Fim)</label>
-            <input type="date" />
-          </div>
-        </div>
-        <button className="btn btn-primary" style={{marginTop: '1rem'}}>Pesquisar</button>
+        <Link to="/ordens-de-servico/nova" className="btn btn-primary">+ Abrir Nova OS</Link>
       </div>
 
       <div className="table-wrapper">
-        <h4>Resultados da Pesquisa</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>Data Emissão</th>
-              <th>Situação</th>
-              <th>Nº O.S.</th>
-              <th>Modelo</th>
-              <th>Localização Física da Máquina</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((os) => (
-              <tr key={os.id}>
-                <td>{os.emissionDate}</td>
-                <td>{getStatusTag(os.status)}</td>
-                <td><span className="id-tag">{os.id}</span></td>
-                <td>{os.model}</td>
-                <td>{os.location}</td>
-                <td>
-                  <Link to={`/ordens-de-servico/${os.id}`} className="btn btn-secondary btn-sm">Ver Detalhes</Link>
-                </td>
+        {loading ? <p>Carregando...</p> : (
+          <table>
+            <thead>
+              <tr>
+                <th>Nº OS</th>
+                <th>Equipamento</th>
+                <th>Data Abertura</th>
+                <th>Status</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {orders.length > 0 ? (
+                orders.map(os => (
+                  <tr key={os.id}>
+                    <td style={{fontWeight: 'bold'}}>#{os.numeroOs}</td>
+                    <td>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                            {os.fotoEquipamento && (
+                                <img src={os.fotoEquipamento} alt="" style={{width: 30, height: 30, borderRadius: '4px', objectFit: 'cover'}} />
+                            )}
+                            <span>{os.nomeEquipamento}</span>
+                        </div>
+                    </td>
+                    <td>{new Date(os.dataEmissao).toLocaleDateString()}</td>
+                    <td>
+                      <span style={{
+                        backgroundColor: getStatusColor(os.status),
+                        color: 'white',
+                        padding: '4px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.8rem',
+                        fontWeight: 'bold'
+                      }}>
+                        {os.status}
+                      </span>
+                    </td>
+                    <td>
+                      <Link to={`/ordens-de-servico/${os.id}`} className="btn btn-secondary">
+                        Gerenciar / Detalhes
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                   <td colSpan="5" style={{textAlign: 'center'}}>Nenhuma Ordem de Serviço encontrada.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
