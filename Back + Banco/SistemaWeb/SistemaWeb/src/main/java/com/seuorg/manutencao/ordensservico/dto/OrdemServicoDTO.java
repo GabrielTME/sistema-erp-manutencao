@@ -7,6 +7,10 @@ public class OrdemServicoDTO {
     private Long id;
     private String numeroOs;
     private Long idEquipamento;
+    // Novos campos para exibição bonita
+    private String nomeEquipamento;
+    private String fotoEquipamento;
+    
     private String problema;
     private String defeitoConstatado;
     private String acoesARealizar;
@@ -16,17 +20,23 @@ public class OrdemServicoDTO {
     private Date dataInicio;
     private Date dataFim;
     private String observacoes;
-    private List<Long> tecnicos; // IDs dos técnicos alocados
+    private List<Long> tecnicos;
 
     public OrdemServicoDTO() {}
 
-    // getters/setters
+    // Getters e Setters para tudo, incluindo os novos
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNumeroOs() { return numeroOs; }
     public void setNumeroOs(String numeroOs) { this.numeroOs = numeroOs; }
     public Long getIdEquipamento() { return idEquipamento; }
     public void setIdEquipamento(Long idEquipamento) { this.idEquipamento = idEquipamento; }
+    
+    public String getNomeEquipamento() { return nomeEquipamento; }
+    public void setNomeEquipamento(String nomeEquipamento) { this.nomeEquipamento = nomeEquipamento; }
+    public String getFotoEquipamento() { return fotoEquipamento; }
+    public void setFotoEquipamento(String fotoEquipamento) { this.fotoEquipamento = fotoEquipamento; }
+
     public String getProblema() { return problema; }
     public void setProblema(String problema) { this.problema = problema; }
     public String getDefeitoConstatado() { return defeitoConstatado; }

@@ -3,11 +3,11 @@ package com.seuorg.manutencao.ordensservico.controller;
 import com.seuorg.manutencao.ordensservico.dto.*;
 import com.seuorg.manutencao.ordensservico.service.OrdemServicoService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import org.springframework.data.domain.Page;
 
 @RestController
 @RequestMapping("/api/ordens-servico")
@@ -42,12 +42,13 @@ public class OrdemServicoController {
         return ResponseEntity.noContent().build();
     }
 
-    // atribuir tecnicos (substitui a lista atual)
+    // --- TÉCNICOS ---
     @PostMapping("/{id_os}/tecnicos")
     public List<Long> atribuirTecnicos(@PathVariable("id_os") Long idOs, @RequestBody List<Long> tecnicos) {
         return service.atribuirTecnicos(idOs, tecnicos);
     }
 
+    // --- HISTÓRICO ---
     @GetMapping("/{id_os}/historico")
     public List<OsHistoricoDTO> listarHistorico(@PathVariable("id_os") Long idOs) {
         return service.listarHistorico(idOs);
@@ -56,5 +57,22 @@ public class OrdemServicoController {
     @PostMapping("/{id_os}/historico")
     public ResponseEntity<OsHistoricoDTO> adicionarHistorico(@PathVariable("id_os") Long idOs, @RequestBody OsHistoricoCreateDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.adicionarHistorico(idOs, dto));
+    }
+
+    // --- ITENS (PEÇAS) ---
+    @GetMapping("/{id_os}/itens")
+    public List<OsItemDTO> listarItens(@PathVariable("id_os") Long idOs) {
+        return service.listarItens(idOs);
+    }
+
+    @PostMapping("/{id_os}/itens")
+    public ResponseEntity<OsItemDTO> adicionarItem(@PathVariable("id_os") Long idOs, @RequestBody OsItemCreateDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.adicionarItem(idOs, dto));
+    }
+
+    @DeleteMapping("/itens/{id_os_item}")
+    public ResponseEntity<Void> removerItem(@PathVariable("id_os_item") Long idOsItem) {
+        service.removerItem(idOsItem);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -2,18 +2,25 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 
-// Importação das Páginas
+// --- PÁGINAS ---
 import Dashboard from './pages/Dashboard';
+
+// Fase 1: Equipamentos e Marcas
 import EquipmentList from './pages/EquipmentList';
-import StockList from './pages/StockList';
-import ServiceOrderList from './pages/ServiceOrderList';
-import NewServiceOrder from './pages/NewServiceOrder';
-import ServiceOrderDetail from './pages/ServiceOrderDetail.jsx';
 import BrandList from './pages/BrandList';
 
-// Novas importações (Fase 2 - Técnicos)
+// Fase 2: Técnicos
 import TechnicianList from './pages/TechnicianList';
 import TechnicianCategoryList from './pages/TechnicianCategoryList';
+
+// Fase 3: Estoque
+import StockList from './pages/StockList';
+import StockGroupList from './pages/StockGroupList'; // <--- Essa importação provavelmente estava faltando!
+
+// Fase 4: Ordens de Serviço (ainda vamos mexer, mas mantemos as rotas antigas se existirem os arquivos)
+import ServiceOrderList from './pages/ServiceOrderList';
+import NewServiceOrder from './pages/NewServiceOrder';
+import ServiceOrderDetail from './pages/ServiceOrderDetail';
 
 function App() {
   return (
@@ -24,17 +31,19 @@ function App() {
           {/* Dashboard */}
           <Route path="/" element={<Dashboard />} />
           
-          {/* Equipamentos e Marcas */}
+          {/* FASE 1 */}
           <Route path="/equipamentos" element={<EquipmentList />} />
           <Route path="/marcas" element={<BrandList />} />
           
-          {/* Técnicos e Categorias (Fase 2) */}
+          {/* FASE 2 */}
           <Route path="/tecnicos" element={<TechnicianList />} />
           <Route path="/tecnicos/categorias" element={<TechnicianCategoryList />} />
 
-          {/* Estoque e Ordens de Serviço (Próximas fases) */}
+          {/* FASE 3 (Estoque) */}
           <Route path="/estoque" element={<StockList />} />
           <Route path="/estoque/grupos" element={<StockGroupList />} />
+
+          {/* FASE 4 (Ordens de Serviço - Estrutura) */}
           <Route path="/ordens-de-servico" element={<ServiceOrderList />} />
           <Route path="/ordens-de-servico/nova" element={<NewServiceOrder />} />
           <Route path="/ordens-de-servico/:id" element={<ServiceOrderDetail />} />
