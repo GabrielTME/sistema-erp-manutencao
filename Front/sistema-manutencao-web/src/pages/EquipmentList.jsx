@@ -5,7 +5,7 @@ import api from '../services/api';
 
 const EquipmentList = () => {
   const [equipments, setEquipments] = useState([]);
-  const [brands, setBrands] = useState([]); // Estado para guardar as marcas da API
+  const [brands, setBrands] = useState([]); 
   const [loading, setLoading] = useState(true);
   
   // Modais
@@ -23,12 +23,9 @@ const EquipmentList = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
 
-  // --- BUSCAR DADOS (EQUIPAMENTOS E MARCAS) ---
-  
+  // --- BUSCAR DADOS ---
   const fetchBrands = async () => {
     try {
-      // Busca as marcas para preencher o Select
-      // size=100 garante que venham todas (ou quase todas) para o dropdown
       const response = await api.get('/marcas?size=100&sort=nome'); 
       setBrands(response.data.content);
     } catch (error) {
@@ -43,8 +40,8 @@ const EquipmentList = () => {
       
       const adaptedData = response.data.content.map(item => ({
         id: item.id,
-        name: item.nome, // O DTO do equipamento retorna 'nome'
-        brand: item.marca ? item.marca.name : '...', // O DTO da Marca dentro do Equipamento retorna 'name'
+        name: item.nome, 
+        brand: item.marca ? item.marca.name : '...',
         brandId: item.marca ? item.marca.id : '',
         photoUrl: item.foto
       }));
@@ -58,11 +55,11 @@ const EquipmentList = () => {
   };
 
   useEffect(() => {
-    fetchBrands();     // Carrega as marcas
-    fetchEquipments(); // Carrega os equipamentos
+    fetchBrands();     
+    fetchEquipments(); 
   }, []);
 
-  // --- HANDLERS VISUAIS ---
+  // --- HANDLERS ---
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -86,14 +83,13 @@ const EquipmentList = () => {
   const openEditModal = (eq) => {
     setCurrentEquipment(eq);
     setName(eq.name);
-    setBrandId(eq.brandId); // Agora usamos o ID real que veio do banco
+    setBrandId(eq.brandId); 
     setPreviewUrl(eq.photoUrl); 
     setSelectedFile(null); 
     setEditModalOpen(true);
   };
 
   // --- AÇÕES DE API ---
-
   const handleAddEquipment = async () => {
     if (!name || !brandId) {
       alert('Nome e Marca são obrigatórios.');
@@ -165,88 +161,194 @@ const EquipmentList = () => {
       </div>
 
       <div className="table-wrapper">
-        {loading ? <p>Carregando...</p> : (
-          <table>
+        {loading ? <p style={{padding: '1.5rem'}}>Carregando...</p> : (
+          <table style={{width: '100%', tableLayout: 'fixed'}}>
             <thead>
               <tr>
-                <th>Foto</th>
-                <th>Nome</th>
-                <th>Marca</th>
-                <th>Ações</th>
+                <th style={{width: '10%', textAlign: 'left', paddingLeft: '2rem'}}>Foto</th>
+                <th style={{width: '30%', textAlign: 'left'}}>Nome do Equipamento</th>
+                <th style={{width: '20%', textAlign: 'left'}}>Marca</th>
+                <th style={{width: '15%', textAlign: 'left'}}>ID do Equipamento</th> 
+                <th style={{width: '25%', textAlign: 'left'}}>Ações</th>
               </tr>
             </thead>
             <tbody>
-              {equipments.map((eq) => (
-                <tr key={eq.id}>
-                  <td>
-                    <img 
-                      src={eq.photoUrl || 'https://via.placeholder.com/40?text=?'} 
-                      alt="Foto" 
-                      className="table-photo-thumb"
-                      onClick={() => { setSelectedPhotoUrl(eq.photoUrl); setPhotoModalOpen(true); }}
-                    />
-                  </td>
-                  <td>{eq.name}</td>
-                  <td>{eq.brand}</td>
-                  <td>
-                    <button className="btn btn-secondary" onClick={() => openEditModal(eq)}>Editar</button>
-                    <button className="btn btn-danger" style={{marginLeft: '5px'}} onClick={() => handleDeleteClick(eq.id)}>Excluir</button>
+              {equipments.length > 0 ? (
+                equipments.map((eq) => (
+                  <tr key={eq.id}>
+                    <td style={{textAlign: 'left', verticalAlign: 'middle', paddingLeft: '2rem'}}>
+                      <img 
+                        src={eq.photoUrl || 'https://via.placeholder.com/40?text=?'} 
+                        alt="Foto" 
+                        className="table-photo-thumb"
+                        onClick={() => { setSelectedPhotoUrl(eq.photoUrl); setPhotoModalOpen(true); }}
+                        style={{display: 'block', margin: 0}} 
+                      />
+                    </td>
+                    
+                    <td style={{textAlign: 'left', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                        {eq.name}
+                    </td>
+                    
+                    <td style={{textAlign: 'left', verticalAlign: 'middle'}}>
+                        {eq.brand}
+                    </td>
+                    
+                    <td style={{textAlign: 'left', verticalAlign: 'middle'}}>
+                        <span style={{
+                            backgroundColor: '#e2e8f0', 
+                            color: '#475569',           
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem',
+                            fontFamily: 'monospace',    
+                            display: 'inline-block'
+                        }}>
+                            EQ{String(eq.id).padStart(3, '0')}
+                        </span>
+                    </td>
+                    
+                    <td style={{textAlign: 'left', verticalAlign: 'middle'}}>
+                      <button className="btn btn-secondary" onClick={() => openEditModal(eq)}>Editar</button>
+                      <button className="btn btn-danger" style={{marginLeft: '8px'}} onClick={() => handleDeleteClick(eq.id)}>Excluir</button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" style={{textAlign: 'center', padding: '3rem', color: '#64748b'}}>
+                    Nenhum equipamento encontrado.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         )}
       </div>
 
       {/* MODAL ADICIONAR */}
-      <Modal isOpen={isAddModalOpen} onClose={() => setAddModalOpen(false)} title="Novo Equipamento">
+      <Modal isOpen={isAddModalOpen} onClose={() => setAddModalOpen(false)} title="Adicionar Equipamento">
+         <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
+            Preencha as informações do novo equipamento.
+         </p>
+
          <div className="form-group">
-            <label>Nome</label>
+            <label>Nome do Equipamento</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} />
          </div>
          <div className="form-group">
             <label>Marca</label>
             <select value={brandId} onChange={e => setBrandId(e.target.value)} className="form-select">
-              <option value="">Selecione...</option>
+              <option value="">Selecione uma marca</option>
               {brands.map(b => (
                 <option key={b.id} value={b.id}>{b.name}</option>
               ))}
             </select>
             {brands.length === 0 && <small style={{color: 'red'}}>Nenhuma marca cadastrada no sistema.</small>}
          </div>
+         
          <div className="form-group">
             <label>Foto</label>
-            <input type="file" accept="image/*" onChange={handleFileChange} />
+            <div style={{
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                padding: '0.5rem',
+                backgroundColor: '#f8fafc',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+            }}>
+                <label htmlFor="add-file-upload" style={{
+                    backgroundColor: '#e2e8f0',
+                    border: '1px solid #cbd5e1',
+                    padding: '4px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    color: '#334155',
+                    fontWeight: '500'
+                }}>
+                    Escolher arquivo
+                </label>
+                <span style={{color: '#64748b', fontSize: '0.9rem'}}>
+                    {selectedFile ? selectedFile.name : "Faça upload de um arquivo"}
+                </span>
+                <input 
+                    id="add-file-upload"
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileChange}
+                    style={{display: 'none'}}
+                />
+            </div>
             {previewUrl && <img src={previewUrl} alt="Preview" style={{marginTop: 10, maxHeight: 100}} />}
          </div>
+         
          <div className="modal-actions">
            <button className="btn btn-secondary" onClick={() => setAddModalOpen(false)}>Cancelar</button>
-           <button className="btn btn-primary" onClick={handleAddEquipment}>Salvar</button>
+           <button className="btn btn-primary" onClick={handleAddEquipment}>Adicionar</button>
          </div>
       </Modal>
 
       {/* MODAL EDITAR */}
       <Modal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)} title="Editar Equipamento">
+         <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
+            Modifique as informações do equipamento.
+         </p>
+
          <div className="form-group">
-            <label>Nome</label>
+            <label>Nome do Equipamento</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} />
          </div>
          <div className="form-group">
             <label>Marca</label>
             <select value={brandId} onChange={e => setBrandId(e.target.value)} className="form-select">
-              <option value="">Selecione...</option>
+              <option value="">Selecione uma marca</option>
               {brands.map(b => (
                 <option key={b.id} value={b.id}>{b.name}</option>
               ))}
             </select>
          </div>
+         
          <div className="form-group">
-            <label>Trocar Foto (Opcional)</label>
-            <input type="file" accept="image/*" onChange={handleFileChange} />
-            {previewUrl && <p style={{fontSize: '12px'}}>Foto atual/selecionada:</p>}
+            <label>Foto</label>
+            <div style={{
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                padding: '0.5rem',
+                backgroundColor: '#f8fafc',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+            }}>
+                <label htmlFor="edit-file-upload" style={{
+                    backgroundColor: '#e2e8f0',
+                    border: '1px solid #cbd5e1',
+                    padding: '4px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    color: '#334155',
+                    fontWeight: '500'
+                }}>
+                    Escolher arquivo
+                </label>
+                <span style={{color: '#64748b', fontSize: '0.9rem'}}>
+                    {selectedFile ? selectedFile.name : "Faça upload de um arquivo"}
+                </span>
+                <input 
+                    id="edit-file-upload" 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileChange}
+                    style={{display: 'none'}}
+                />
+            </div>
+            {previewUrl && <p style={{fontSize: '12px', marginTop: '0.5rem', color: '#64748b'}}>Foto atual/selecionada:</p>}
             {previewUrl && <img src={previewUrl} alt="Preview" style={{maxHeight: 100}} />}
          </div>
+         
          <div className="modal-actions">
            <button className="btn btn-secondary" onClick={() => setEditModalOpen(false)}>Cancelar</button>
            <button className="btn btn-primary" onClick={handleUpdateEquipment}>Salvar</button>

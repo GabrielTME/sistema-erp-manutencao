@@ -4,26 +4,22 @@
 }
 
 .dashboard-header {
-  margin-bottom: 2rem; /* Reduzi um pouco a margem */
+  margin-bottom: 2rem; 
 }
 
 .dashboard-cards {
   display: flex;
   justify-content: center;
-  /* Gap reduzido de 2rem para 1rem para caberem mais itens */
   gap: 1rem; 
   flex-wrap: wrap; 
-  /* Aumentei a largura máxima para ocupar mais espaço na tela (antes era 1200px) */
   max-width: 1400px; 
   margin: 0 auto;
 }
 
 .card {
   background-color: var(--card-background, #fff);
-  /* Padding reduzido de 2rem para 1.5rem */
   padding: 1.5rem; 
   border-radius: 8px;
-  /* Largura reduzida de 250px para 200px para caberem 5 na linha */
   width: 200px; 
   text-decoration: none;
   color: inherit;
@@ -40,21 +36,21 @@
 
 .card h3 {
   margin-top: 1rem;
-  font-size: 1rem; /* Fonte levemente menor */
-  min-height: 2.5rem; /* Garante alinhamento mesmo com textos de 2 linhas */
+  font-size: 1rem;
+  min-height: 2.5rem;
 }
 
 .card p {
   color: #64748b;
   margin-bottom: 1.5rem;
-  font-size: 0.85rem; /* Fonte levemente menor */
+  font-size: 0.85rem;
   flex-grow: 1;
 }
 
-/* Ajuste do tamanho do ícone para ficar proporcional ao card menor */
+/* Ícones */
 .card-icon {
-    width: 50px; /* Reduzido de 64px */
-    height: 50px; /* Reduzido de 64px */
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -62,9 +58,14 @@
     margin-bottom: 0.5rem;
 }
 
-/* Cores */
+/* CORES DOS CARDS */
 .card-icon.blue { background-color: #dbeafe; color: #2563eb; }
 .card-icon.green { background-color: #dcfce7; color: #16a34a; }
 .card-icon.orange { background-color: #ffedd5; color: #ea580c; }
 .card-icon.purple { background-color: #f3e8ff; color: #9333ea; }
-.card-icon.teal { background-color: #ccfbf1; color: #0d9488; }
+
+/* COR VIBRANTE: Vermelho Sólido (Sem sombra) */
+.card-icon.red { 
+    background-color: #ef4444; /* Vermelho vivo */
+    color: #ffffff; /* Ícone Branco */
+}
