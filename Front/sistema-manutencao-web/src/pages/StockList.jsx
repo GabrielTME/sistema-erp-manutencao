@@ -9,7 +9,7 @@ const StockList = () => {
 
   // Dados para Selects
   const [groups, setGroups] = useState([]);
-  const [subgroups, setSubgroups] = useState([]); // Subgrupos filtrados pelo grupo selecionado
+  const [subgroups, setSubgroups] = useState([]); 
 
   // Modais
   const [isAddModalOpen, setAddModalOpen] = useState(false);
@@ -25,9 +25,9 @@ const StockList = () => {
     nome: '',
     codigoProduto: '',
     quantidade: '',
-    quantidadeEmEstoque: '', // Estoque Mínimo
+    quantidadeEmEstoque: 0,
     valorUnitario: '',
-    idGrupo: '', // Apenas visual para filtrar o subgrupo
+    idGrupo: '', 
     idSubgrupo: ''
   };
   const [formData, setFormData] = useState(initialFormState);
@@ -38,11 +38,9 @@ const StockList = () => {
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      // Carrega Itens
       const resItens = await api.get('/itens-estoque?size=100');
       setItems(resItens.data.content);
       
-      // Carrega Grupos (para o filtro do modal)
       const resGroups = await api.get('/estoque/grupos');
       setGroups(resGroups.data);
     } catch (error) {
@@ -56,10 +54,10 @@ const StockList = () => {
     loadInitialData();
   }, []);
 
-  // --- LÓGICA DE FORMULÁRIO (CASCATA GRUPO -> SUBGRUPO) ---
+  // --- LÓGICA DE FORMULÁRIO ---
   const handleGroupChange = async (e) => {
     const groupId = e.target.value;
-    setFormData(prev => ({ ...prev, idGrupo: groupId, idSubgrupo: '' })); // Limpa subgrupo ao mudar grupo
+    setFormData(prev => ({ ...prev, idGrupo: groupId, idSubgrupo: '' })); 
     
     if (groupId) {
        const res = await api.get(`/estoque/subgrupos?idGrupo=${groupId}`);
@@ -93,7 +91,6 @@ const StockList = () => {
 
   const openEdit = async (item) => {
     setCurrentItem(item);
-    // Precisamos carregar os subgrupos deste grupo para preencher o select corretamente
     if (item.idGrupo) {
         const res = await api.get(`/estoque/subgrupos?idGrupo=${item.idGrupo}`);
         setSubgroups(res.data);
@@ -103,7 +100,7 @@ const StockList = () => {
       nome: item.nome,
       codigoProduto: item.codigoProduto,
       quantidade: item.quantidade,
-      quantidadeEmEstoque: item.quantidadeEmEstoque,
+      quantidadeEmEstoque: item.quantidadeEmEstoque || 0,
       valorUnitario: item.valorUnitario,
       idGrupo: item.idGrupo || '',
       idSubgrupo: item.idSubgrupo || ''
@@ -113,7 +110,7 @@ const StockList = () => {
     setEditModalOpen(true);
   };
 
-  // --- SALVAR (POST/PUT com FormData) ---
+  // --- SALVAR ---
   const handleSave = async (isEdit) => {
     if (!formData.nome || !formData.codigoProduto || !formData.valorUnitario || !formData.idSubgrupo) {
       alert("Preencha todos os campos obrigatórios (incluindo Grupo/Subgrupo).");
@@ -124,7 +121,7 @@ const StockList = () => {
     data.append('nome', formData.nome);
     data.append('codigoProduto', formData.codigoProduto);
     data.append('quantidade', formData.quantidade);
-    data.append('quantidadeEmEstoque', formData.quantidadeEmEstoque);
+    data.append('quantidadeEmEstoque', formData.quantidadeEmEstoque || 0);
     data.append('valorUnitario', formData.valorUnitario);
     data.append('idSubgrupo', formData.idSubgrupo);
     if (selectedFile) {
@@ -144,7 +141,7 @@ const StockList = () => {
       loadInitialData();
     } catch (error) {
       console.error(error);
-      alert("Erro ao salvar item. Verifique se o Código do Produto já existe.");
+      alert("Erro ao salvar item. Verifique se o Código do Item já existe.");
     }
   };
 
@@ -158,6 +155,13 @@ const StockList = () => {
       }
     }
   };
+
+  // --- HELPERS VISUAIS ---
+  const formatCurrency = (value) => {
+    return `R$${value.toFixed(2).replace('.', ',')}`;
+  };
+
+  const totalInventoryValue = items.reduce((acc, item) => acc + (item.quantidade * item.valorUnitario), 0);
 
   return (
     <div className="container">
@@ -174,80 +178,139 @@ const StockList = () => {
 
       <div className="table-wrapper">
         {loading ? <p>Carregando...</p> : (
-          <table>
-            <thead>
-              <tr>
-                <th>Foto</th>
-                <th>Código</th>
-                <th>Nome</th>
-                <th>Grupo / Subgrupo</th>
-                <th>Qtd. Atual</th>
-                <th>Valor Un.</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map(item => (
-                <tr key={item.id}>
-                  <td>
-                    <img 
-                      src={item.foto || 'https://via.placeholder.com/40?text=?'} 
-                      alt="Foto" 
-                      className="table-photo-thumb"
-                      onClick={() => { setSelectedPhotoUrl(item.foto); setPhotoModalOpen(true); }}
-                    />
-                  </td>
-                  <td>{item.codigoProduto}</td>
-                  <td>{item.nome}</td>
-                  <td>
-                     <small>{item.nomeGrupo} &gt; {item.nomeSubgrupo}</small>
-                  </td>
-                  <td style={{ fontWeight: item.quantidade <= item.quantidadeEmEstoque ? 'bold' : 'normal', color: item.quantidade <= item.quantidadeEmEstoque ? 'red' : 'inherit' }}>
-                    {item.quantidade} {item.quantidade <= item.quantidadeEmEstoque && '(Baixo)'}
-                  </td>
-                  <td>R$ {item.valorUnitario.toFixed(2)}</td>
-                  <td>
-                    <button className="btn btn-secondary" onClick={() => openEdit(item)}>Editar</button>
-                    <button className="btn btn-danger" style={{marginLeft: 5}} onClick={() => handleDelete(item.id)}>Excluir</button>
-                  </td>
+          <>
+            <table>
+              <thead>
+                <tr>
+                  <th>Foto</th>
+                  <th>Nome do Item</th>
+                  <th>Código do Item</th>
+                  <th>Grupo / Subgrupo</th>
+                  <th>Quantidade em Estoque</th>
+                  <th>Valor Unitário</th>
+                  <th>Valor Total</th>
+                  <th>Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map(item => {
+                  const isLowStock = item.quantidade <= 5;
+                  const stockColor = isLowStock ? '#ef4444' : '#16a34a';
+                  const stockBg = isLowStock ? '#fee2e2' : '#dcfce7';
+                  const stockLabel = isLowStock ? 'Estoque Baixo' : 'Em Estoque';
+
+                  return (
+                    <tr key={item.id}>
+                      <td>
+                        <img 
+                          src={item.foto || 'https://via.placeholder.com/40?text=?'} 
+                          alt="Foto" 
+                          className="table-photo-thumb"
+                          onClick={() => { setSelectedPhotoUrl(item.foto); setPhotoModalOpen(true); }}
+                        />
+                      </td>
+                      <td>{item.nome}</td>
+                      <td>
+                        <span style={{
+                            backgroundColor: '#e2e8f0', 
+                            color: '#475569',           
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem',
+                            fontFamily: 'monospace',    
+                            display: 'inline-block'
+                        }}>
+                            {item.codigoProduto}
+                        </span>
+                      </td>
+                      <td>
+                        <small>{item.nomeGrupo} &gt; {item.nomeSubgrupo}</small>
+                      </td>
+                      <td>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                            <span style={{fontWeight: 'bold', fontSize: '1rem'}}>{item.quantidade}</span>
+                            <span style={{
+                                backgroundColor: stockBg,
+                                color: stockColor,
+                                padding: '2px 8px',
+                                borderRadius: '12px',
+                                fontSize: '0.75rem',
+                                fontWeight: 'bold',
+                                whiteSpace: 'nowrap'
+                            }}>
+                                {stockLabel}
+                            </span>
+                        </div>
+                      </td>
+                      <td>{formatCurrency(item.valorUnitario)}</td>
+                      <td>{formatCurrency(item.quantidade * item.valorUnitario)}</td>
+                      <td>
+                        <div style={{display: 'flex', gap: '5px', justifyContent: 'center'}}>
+                            <button className="btn btn-secondary" onClick={() => openEdit(item)}>Editar</button>
+                            <button className="btn btn-danger" onClick={() => handleDelete(item.id)}>Excluir</button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            
+            {/* RODAPÉ */}
+            <div style={{
+                padding: '1.5rem', 
+                borderTop: '1px solid #e2e8f0', 
+                textAlign: 'right', 
+                backgroundColor: '#f8fafc',
+                borderBottomLeftRadius: '8px',
+                borderBottomRightRadius: '8px'
+            }}>
+                <span style={{color: '#64748b', marginRight: '10px'}}>Valor Total do Estoque:</span>
+                <span style={{fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b'}}>
+                    {formatCurrency(totalInventoryValue)}
+                </span>
+            </div>
+          </>
         )}
       </div>
 
-      {/* MODAL FORMULÁRIO (Reutilizado para Criar e Editar) */}
+      {/* MODAL FORMULÁRIO */}
       {[isAddModalOpen, isEditModalOpen].map((isOpen, index) => {
         if (!isOpen) return null;
         const isEdit = index === 1;
+        const modalTitle = isEdit ? "Editar Item" : "Adicionar Item ao Estoque";
+        
         return (
           <Modal key={index} isOpen={true} onClose={() => isEdit ? setEditModalOpen(false) : setAddModalOpen(false)} 
-                 title={isEdit ? "Editar Item" : "Novo Item de Estoque"}>
+                 title={modalTitle}>
              
-             <div style={{display: 'flex', gap: '1rem'}}>
-                 <div className="form-group" style={{flex: 1}}>
-                    <label>Código do Produto *</label>
-                    <input name="codigoProduto" value={formData.codigoProduto} onChange={handleInputChange} placeholder="Ex: CX-001" />
-                 </div>
-                 <div className="form-group" style={{flex: 2}}>
-                    <label>Nome do Item *</label>
-                    <input name="nome" value={formData.nome} onChange={handleInputChange} placeholder="Ex: Caixa de Fusíveis" />
-                 </div>
+             {/* TEXTO ALTERADO AQUI */}
+             <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
+                {isEdit ? "Modifique as informações do item em estoque." : "Preencha as informações do novo item para o estoque."}
+             </p>
+
+             <div className="form-group">
+                <label>Nome do Item</label>
+                <input name="nome" value={formData.nome} onChange={handleInputChange} />
              </div>
 
              <div style={{display: 'flex', gap: '1rem'}}>
                  <div className="form-group" style={{flex: 1}}>
+                    <label>Código do Item</label>
+                    <input name="codigoProduto" value={formData.codigoProduto} onChange={handleInputChange} placeholder="Ex.: FILTRO001" />
+                 </div>
+                 <div className="form-group" style={{flex: 1}}>
                     <label>Grupo</label>
                     <select name="idGrupo" value={formData.idGrupo} onChange={handleGroupChange} className="form-select">
-                        <option value="">Selecione...</option>
+                        <option value="">Selecione</option>
                         {groups.map(g => <option key={g.id} value={g.id}>{g.nome}</option>)}
                     </select>
                  </div>
                  <div className="form-group" style={{flex: 1}}>
-                    <label>Subgrupo *</label>
+                    <label>Subgrupo</label>
                     <select name="idSubgrupo" value={formData.idSubgrupo} onChange={handleInputChange} className="form-select" disabled={!formData.idGrupo}>
-                        <option value="">Selecione...</option>
+                        <option value="">Selecione</option>
                         {subgroups.map(sub => <option key={sub.id} value={sub.id}>{sub.nome}</option>)}
                     </select>
                  </div>
@@ -255,34 +318,62 @@ const StockList = () => {
 
              <div style={{display: 'flex', gap: '1rem'}}>
                  <div className="form-group" style={{flex: 1}}>
-                    <label>Qtd. Física *</label>
+                    <label>Quantidade</label>
                     <input type="number" name="quantidade" value={formData.quantidade} onChange={handleInputChange} />
                  </div>
                  <div className="form-group" style={{flex: 1}}>
-                    <label>Estoque Mínimo *</label>
-                    <input type="number" name="quantidadeEmEstoque" value={formData.quantidadeEmEstoque} onChange={handleInputChange} />
-                 </div>
-                 <div className="form-group" style={{flex: 1}}>
-                    <label>Valor Unit. (R$) *</label>
+                    <label>Valor Unitário (R$)</label>
                     <input type="number" step="0.01" name="valorUnitario" value={formData.valorUnitario} onChange={handleInputChange} />
                  </div>
              </div>
 
              <div className="form-group">
-                <label>Foto do Item</label>
-                <input type="file" accept="image/*" onChange={handleFileChange} />
+                <label>Foto</label>
+                <div style={{
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    padding: '0.5rem',
+                    backgroundColor: '#f8fafc',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                }}>
+                    <label htmlFor={`file-upload-${isEdit ? 'edit' : 'add'}`} style={{
+                        backgroundColor: '#e2e8f0',
+                        border: '1px solid #cbd5e1',
+                        padding: '4px 12px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        color: '#334155',
+                        fontWeight: '500'
+                    }}>
+                        Escolher arquivo
+                    </label>
+                    <span style={{color: '#64748b', fontSize: '0.9rem'}}>
+                        {selectedFile ? selectedFile.name : "Faça upload de um arquivo"}
+                    </span>
+                    <input 
+                        id={`file-upload-${isEdit ? 'edit' : 'add'}`}
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleFileChange}
+                        style={{display: 'none'}}
+                    />
+                </div>
                 {previewUrl && <img src={previewUrl} alt="Preview" style={{marginTop: 10, maxHeight: 80}} />}
              </div>
 
              <div className="modal-actions">
                <button className="btn btn-secondary" onClick={() => isEdit ? setEditModalOpen(false) : setAddModalOpen(false)}>Cancelar</button>
-               <button className="btn btn-primary" onClick={() => handleSave(isEdit)}>Salvar</button>
+               <button className="btn btn-primary" onClick={() => handleSave(isEdit)}>
+                   {isEdit ? 'Salvar' : 'Adicionar'}
+               </button>
              </div>
           </Modal>
         );
       })}
       
-      {/* MODAL FOTO GRANDE */}
       <Modal isOpen={isPhotoModalOpen} onClose={() => setPhotoModalOpen(false)} title="Foto do Item">
         <img src={selectedPhotoUrl} alt="Item" className="photo-modal-img" />
       </Modal>
