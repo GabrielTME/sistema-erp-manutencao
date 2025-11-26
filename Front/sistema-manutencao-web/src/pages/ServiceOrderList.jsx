@@ -9,7 +9,6 @@ const ServiceOrderList = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      // Aqui a URL é fixa, não depende de ID, então não vai dar "undefined"
       const response = await api.get('/ordens-servico?size=100'); 
       setOrders(response.data.content);
     } catch (error) {
@@ -24,15 +23,23 @@ const ServiceOrderList = () => {
     fetchOrders();
   }, []);
 
+  // Mapeamento de Cores para os Novos Status
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ABERTA': return '#3b82f6';
-      case 'EM_ANDAMENTO': return '#eab308';
-      case 'AGUARDANDO_PECAS': return '#f97316';
-      case 'CONCLUIDA': return '#22c55e';
-      case 'CANCELADA': return '#ef4444';
-      default: return '#64748b';
+      case 'EM_ANDAMENTO': return '#eab308'; // Amarelo
+      case 'CONCLUIDA': return '#22c55e';    // Verde
+      case 'AGUARDANDO_PECAS': return '#f97316'; // Laranja
+      case 'EM_OBSERVACAO': return '#3b82f6'; // Azul
+      case 'PAUSADA': return '#64748b';      // Cinza
+      case 'CANCELADA': return '#ef4444';    // Vermelho
+      default: return '#94a3b8';
     }
+  };
+
+  // Formata o texto (ex: AGUARDANDO_PECAS -> Aguardando Peças)
+  const formatStatus = (status) => {
+    if (!status) return '';
+    return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
   };
 
   return (
@@ -40,9 +47,9 @@ const ServiceOrderList = () => {
       <div className="page-header">
         <div className="page-header-left">
            <Link to="/" className="btn btn-secondary btn-back">&larr; Voltar</Link>
-           <h1>Ordens de Serviço</h1>
+           <h1>Consulta de Ordens de Serviço</h1>
         </div>
-        <Link to="/ordens-de-servico/nova" className="btn btn-primary">+ Abrir Nova OS</Link>
+        <Link to="/ordens-de-servico/nova" className="btn btn-primary">+ Nova O. S.</Link>
       </div>
 
       <div className="table-wrapper">
@@ -75,12 +82,13 @@ const ServiceOrderList = () => {
                       <span style={{
                         backgroundColor: getStatusColor(os.status),
                         color: 'white',
-                        padding: '4px 8px',
+                        padding: '4px 10px',
                         borderRadius: '12px',
-                        fontSize: '0.8rem',
-                        fontWeight: 'bold'
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase'
                       }}>
-                        {os.status}
+                        {formatStatus(os.status)}
                       </span>
                     </td>
                     <td>
@@ -92,7 +100,9 @@ const ServiceOrderList = () => {
                 ))
               ) : (
                 <tr>
-                   <td colSpan="5" style={{textAlign: 'center'}}>Nenhuma Ordem de Serviço encontrada.</td>
+                   <td colSpan="5" style={{textAlign: 'center', padding: '2rem', color: '#64748b'}}>
+                     Nenhuma Ordem de Serviço encontrada.
+                   </td>
                 </tr>
               )}
             </tbody>

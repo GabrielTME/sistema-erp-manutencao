@@ -13,11 +13,11 @@ const ServiceOrderDetail = () => {
   const [osItems, setOsItems] = useState([]);
   const [history, setHistory] = useState([]);
   
-  // DADOS AUXILIARES (Para os Selects)
+  // DADOS AUXILIARES
   const [allTechnicians, setAllTechnicians] = useState([]);
   const [stockItems, setStockItems] = useState([]);
 
-  // ESTADOS DE FORMULÁRIO (Adicionar Item e Técnico)
+  // ESTADOS DE FORMULÁRIO
   const [selectedTechId, setSelectedTechId] = useState('');
   const [itemForm, setItemForm] = useState({ idItemEstoque: '', quantidade: 1 });
 
@@ -26,19 +26,15 @@ const ServiceOrderDetail = () => {
     try {
       setLoading(true);
       
-      // 1. Carrega OS
       const resOs = await api.get(`/ordens-servico/${id}`);
       setOs(resOs.data);
 
-      // 2. Carrega Itens da OS (Peças)
       const resItems = await api.get(`/ordens-servico/${id}/itens`);
       setOsItems(resItems.data);
 
-      // 3. Carrega Histórico
       const resHist = await api.get(`/ordens-servico/${id}/historico`);
       setHistory(resHist.data);
 
-      // 4. Carrega Listas Auxiliares (Técnicos e Estoque)
       const resTechs = await api.get('/tecnicos?size=100');
       setAllTechnicians(resTechs.data.content);
 
@@ -57,12 +53,12 @@ const ServiceOrderDetail = () => {
     loadData();
   }, [id]);
 
-  // --- AÇÕES: PRINCIPAL (Salvar edições) ---
+  // --- AÇÕES: PRINCIPAL ---
   const handleUpdateOs = async () => {
     try {
       await api.put(`/ordens-servico/${id}`, os);
       alert("Dados atualizados!");
-      loadData(); // Recarrega para garantir histórico e dados frescos
+      loadData(); 
     } catch (error) {
       alert("Erro ao atualizar.");
     }
@@ -101,7 +97,7 @@ const ServiceOrderDetail = () => {
       }
   };
 
-  // --- AÇÕES: ITENS (PEÇAS) ---
+  // --- AÇÕES: ITENS ---
   const handleAddItem = async () => {
       if (!itemForm.idItemEstoque || itemForm.quantidade <= 0) return alert("Selecione item e quantidade.");
       
@@ -131,16 +127,22 @@ const ServiceOrderDetail = () => {
       }
   };
 
-  // --- HELPER DE COR ---
+  // --- HELPER DE COR (Mesmas cores da Lista) ---
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ABERTA': return '#3b82f6';
       case 'EM_ANDAMENTO': return '#eab308';
+      case 'CONCLUIDA': return '#22c55e';
       case 'AGUARDANDO_PECAS': return '#f97316';
-      case 'CONCLUIDA': return '#22c55e'; 
-      case 'CANCELADA': return '#ef4444'; 
-      default: return '#64748b';
+      case 'EM_OBSERVACAO': return '#3b82f6';
+      case 'PAUSADA': return '#64748b';
+      case 'CANCELADA': return '#ef4444';
+      default: return '#94a3b8';
     }
+  };
+
+  const formatStatus = (status) => {
+    if (!status) return '';
+    return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
   };
 
   if (loading || !os) return <div className="container"><p>Carregando...</p></div>;
@@ -153,11 +155,11 @@ const ServiceOrderDetail = () => {
             <h1>Ordem de Serviço #{os.numeroOs}</h1>
          </div>
          <div className="status-badge" style={{backgroundColor: getStatusColor(os.status)}}>
-             {os.status}
+             {formatStatus(os.status)}
          </div>
       </div>
 
-      {/* CABEÇALHO RESUMO */}
+      {/* CABEÇALHO */}
       <div className="os-detail-header">
          <div className="os-info-grid" style={{width: '100%'}}>
              <div>
@@ -178,7 +180,7 @@ const ServiceOrderDetail = () => {
          )}
       </div>
 
-      {/* TABS DE NAVEGAÇÃO */}
+      {/* TABS */}
       <div className="tabs-header">
           <button className={`tab-btn ${activeTab === 'principal' ? 'active' : ''}`} onClick={() => setActiveTab('principal')}>Principal</button>
           <button className={`tab-btn ${activeTab === 'pecas' ? 'active' : ''}`} onClick={() => setActiveTab('pecas')}>Peças e Materiais</button>
@@ -194,12 +196,14 @@ const ServiceOrderDetail = () => {
                   <div style={{display: 'flex', gap: '1rem', marginBottom: '1rem'}}>
                       <div className="form-group" style={{flex: 1}}>
                           <label>Status Atual</label>
+                          {/* OPÇÕES DE STATUS ATUALIZADAS */}
                           <select name="status" value={os.status} onChange={handleInputChange} className="form-select">
-                              <option value="ABERTA">ABERTA</option>
-                              <option value="EM_ANDAMENTO">EM ANDAMENTO</option>
-                              <option value="AGUARDANDO_PECAS">AGUARDANDO PEÇAS</option>
-                              <option value="CONCLUIDA">CONCLUÍDA</option>
-                              <option value="CANCELADA">CANCELADA</option>
+                              <option value="EM_ANDAMENTO">Em andamento</option>
+                              <option value="CONCLUIDA">Concluída</option>
+                              <option value="AGUARDANDO_PECAS">Aguardando peças</option>
+                              <option value="EM_OBSERVACAO">Em observação</option>
+                              <option value="PAUSADA">Pausada</option>
+                              <option value="CANCELADA">Cancelada</option>
                           </select>
                       </div>
                       <div className="form-group" style={{flex: 1}}>
@@ -217,11 +221,11 @@ const ServiceOrderDetail = () => {
                       <textarea name="problema" rows="3" value={os.problema} onChange={handleInputChange} />
                   </div>
                   <div className="form-group">
-                      <label>Defeito Constatado (Técnico)</label>
+                      <label>Defeito Constatado</label>
                       <textarea name="defeitoConstatado" rows="3" value={os.defeitoConstatado || ''} onChange={handleInputChange} placeholder="Diagnóstico técnico..." />
                   </div>
                   <div className="form-group">
-                      <label>Ações Realizadas / Solução</label>
+                      <label>Ações Realizadas</label>
                       <textarea name="acoesARealizar" rows="3" value={os.acoesARealizar || ''} onChange={handleInputChange} placeholder="O que foi feito..." />
                   </div>
 
@@ -238,7 +242,7 @@ const ServiceOrderDetail = () => {
                           <select className="form-select" value={itemForm.idItemEstoque} onChange={e => setItemForm({...itemForm, idItemEstoque: e.target.value})}>
                               <option value="">Selecione...</option>
                               {stockItems.map(i => (
-                                  <option key={i.id} value={i.id}>{i.nome} (Estoque: {i.quantidade}) - R$ {i.valorUnitario}</option>
+                                  <option key={i.id} value={i.id}>{i.nome} (Estoque: {i.quantidade}) - R$ {i.valorUnitario.toFixed(2)}</option>
                               ))}
                           </select>
                       </div>
@@ -320,7 +324,7 @@ const ServiceOrderDetail = () => {
                           <li key={h.id} style={{marginBottom: '20px', position: 'relative'}}>
                               <div style={{position: 'absolute', left: '-29px', top: '0', width: '16px', height: '16px', borderRadius: '50%', background: '#3b82f6'}}></div>
                               <p style={{margin: 0, fontSize: '0.85rem', color: '#64748b'}}>{new Date(h.dataEvento).toLocaleString()}</p>
-                              <p style={{margin: '5px 0 0 0', fontWeight: 'bold'}}>{h.status}</p>
+                              <p style={{margin: '5px 0 0 0', fontWeight: 'bold'}}>{formatStatus(h.status)}</p>
                               <p style={{margin: 0}}>{h.descricao}</p>
                           </li>
                       ))}
