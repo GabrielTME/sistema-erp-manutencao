@@ -26,7 +26,7 @@ const StockList = () => {
     codigoProduto: '',
     quantidade: '',
     quantidadeEmEstoque: 0,
-    valorUnitario: '', // Será armazenado como número (float)
+    valorUnitario: '',
     idGrupo: '', 
     idSubgrupo: ''
   };
@@ -54,6 +54,23 @@ const StockList = () => {
     loadInitialData();
   }, []);
 
+  // --- LÓGICA DE SERVIÇOS (NOVO) ---
+  const handleCreateService = async () => {
+      // Usa um prompt simples do navegador para agilizar o cadastro
+      const nomeServico = window.prompt("Nome do Serviço:", "Horas Técnicas de Manutenção");
+      
+      if (!nomeServico) return; // Cancelou
+
+      try {
+          await api.post('/servicos', { nome: nomeServico });
+          alert('Serviço cadastrado com sucesso! O código SRV foi gerado.');
+          loadInitialData(); // Recarrega a lista para mostrar o novo serviço
+      } catch (error) {
+          console.error(error);
+          alert('Erro ao cadastrar serviço.');
+      }
+  };
+
   // --- LÓGICA DE FORMULÁRIO ---
   const handleGroupChange = async (e) => {
     const groupId = e.target.value;
@@ -72,23 +89,16 @@ const StockList = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- MÁSCARA DE MOEDA (AJUSTADA) ---
+  // --- MÁSCARA DE MOEDA ---
   const handlePriceChange = (e) => {
     let value = e.target.value;
-    
-    // Remove tudo que não é dígito
     value = value.replace(/\D/g, "");
-
-    // Converte para número (divide por 100 para considerar centavos)
     const numericValue = value ? parseFloat(value) / 100 : '';
-
     setFormData(prev => ({ ...prev, valorUnitario: numericValue }));
   };
 
-  // Função auxiliar para formatar o valor no input sem espaço
   const getFormattedPriceForInput = (value) => {
       if (!value) return '';
-      // Formata como moeda e remove qualquer tipo de espaço (normal ou non-breaking space)
       return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\s/g, '').replace(/\u00A0/g, '');
   };
 
@@ -111,6 +121,7 @@ const StockList = () => {
 
   const openEdit = async (item) => {
     setCurrentItem(item);
+    // Se for serviço, não carrega subgrupos
     if (item.idGrupo) {
         const res = await api.get(`/estoque/subgrupos?idGrupo=${item.idGrupo}`);
         setSubgroups(res.data);
@@ -133,7 +144,7 @@ const StockList = () => {
   // --- SALVAR ---
   const handleSave = async (isEdit) => {
     if (!formData.nome || !formData.codigoProduto || !formData.valorUnitario || !formData.idSubgrupo) {
-      alert("Preencha todos os campos obrigatórios (incluindo Grupo/Subgrupo).");
+      alert("Preencha todos os campos obrigatórios.");
       return;
     }
 
@@ -179,7 +190,6 @@ const StockList = () => {
   // --- HELPERS VISUAIS ---
   const formatCurrency = (value) => {
     if (value === undefined || value === null) return 'R$0,00';
-    // Formata e remove espaços manualmente
     return `R$${value.toFixed(2).replace('.', ',')}`;
   };
 
@@ -192,8 +202,10 @@ const StockList = () => {
            <Link to="/" className="btn btn-secondary btn-back">&larr; Voltar</Link>
            <h1>Itens em Estoque</h1>
         </div>
-        <div>
-           <Link to="/estoque/grupos" className="btn btn-secondary" style={{marginRight: '1rem'}}>Gerenciar Grupos</Link>
+        <div style={{display: 'flex', gap: '10px'}}>
+           <Link to="/estoque/grupos" className="btn btn-secondary">Gerenciar Grupos</Link>
+           {/* BOTÃO HORAS TÉCNICAS FUNCIONAL */}
+           <button className="btn btn-secondary" onClick={handleCreateService}>Horas Técnicas</button>
            <button className="btn btn-primary" onClick={openAdd}>+ Adicionar Item</button>
         </div>
       </div>
@@ -204,6 +216,7 @@ const StockList = () => {
             <table>
               <thead>
                 <tr>
+                  {/* COLUNAS REORGANIZADAS */}
                   <th>Foto</th>
                   <th>Nome do Item</th>
                   <th>Código do Item</th>
@@ -216,10 +229,22 @@ const StockList = () => {
               </thead>
               <tbody>
                 {items.map(item => {
-                  const isLowStock = item.quantidade <= 5;
-                  const stockColor = isLowStock ? '#ef4444' : '#16a34a';
-                  const stockBg = isLowStock ? '#fee2e2' : '#dcfce7';
-                  const stockLabel = isLowStock ? 'Estoque Baixo' : 'Em Estoque';
+                  const isService = item.codigoProduto && item.codigoProduto.startsWith('SRV');
+                  const isLowStock = !isService && item.quantidade <= 5;
+                  
+                  let stockLabel = 'Em Estoque';
+                  let stockBg = '#dcfce7'; // Verde
+                  let stockColor = '#16a34a';
+
+                  if (isService) {
+                      stockLabel = 'Serviço';
+                      stockBg = '#e0e7ff'; // Azul
+                      stockColor = '#3730a3';
+                  } else if (isLowStock) {
+                      stockLabel = 'Estoque Baixo';
+                      stockBg = '#fee2e2'; // Vermelho
+                      stockColor = '#ef4444';
+                  }
 
                   return (
                     <tr key={item.id}>
@@ -247,11 +272,15 @@ const StockList = () => {
                         </span>
                       </td>
                       <td>
-                        <small>{item.nomeGrupo} &gt; {item.nomeSubgrupo}</small>
+                        {item.nomeGrupo ? (
+                            <small>{item.nomeGrupo} &gt; {item.nomeSubgrupo}</small>
+                        ) : <small>-</small>}
                       </td>
                       <td>
                         <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                            <span style={{fontWeight: 'bold', fontSize: '1rem'}}>{item.quantidade}</span>
+                            <span style={{fontWeight: 'bold', fontSize: '1rem'}}>
+                                {isService ? '∞' : item.quantidade}
+                            </span>
                             <span style={{
                                 backgroundColor: stockBg,
                                 color: stockColor,
@@ -296,7 +325,7 @@ const StockList = () => {
         )}
       </div>
 
-      {/* MODAL FORMULÁRIO */}
+      {/* MODAL FORMULÁRIO (Reutilizado) */}
       {[isAddModalOpen, isEditModalOpen].map((isOpen, index) => {
         if (!isOpen) return null;
         const isEdit = index === 1;
@@ -343,7 +372,6 @@ const StockList = () => {
                  </div>
                  <div className="form-group" style={{flex: 1}}>
                     <label>Valor Unitário (R$)</label>
-                    {/* USANDO A FUNÇÃO AUXILIAR PARA REMOVER O ESPAÇO */}
                     <input 
                         type="text" 
                         name="valorUnitario" 

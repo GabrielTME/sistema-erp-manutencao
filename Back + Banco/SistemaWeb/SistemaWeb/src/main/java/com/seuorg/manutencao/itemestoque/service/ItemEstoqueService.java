@@ -28,6 +28,11 @@ public class ItemEstoqueService {
     public ItemEstoqueService(ItemEstoqueRepository repository, ItemSubgrupoRepository subgrupoRepository) {
         this.repository = repository;
         this.subgrupoRepository = subgrupoRepository;
+        try {
+            Files.createDirectories(rootLocation);
+        } catch (IOException e) {
+            throw new RuntimeException("Não foi possível inicializar o armazenamento de imagens", e);
+        }
     }
 
     private ItemEstoqueDTO toDTO(ItemEstoque i) {
@@ -65,7 +70,9 @@ public class ItemEstoqueService {
 
         String urlFoto = salvarArquivo(arquivo);
 
-        ItemEstoque item = new ItemEstoque(null, nome, codigo, qtd, qtdMin, valor, urlFoto, sub);
+        // CORREÇÃO AQUI: Adicionado "PRODUTO" no construtor
+        ItemEstoque item = new ItemEstoque(null, nome, codigo, qtd, qtdMin, valor, urlFoto, "PRODUTO", sub);
+        
         repository.save(item);
         return toDTO(item);
     }

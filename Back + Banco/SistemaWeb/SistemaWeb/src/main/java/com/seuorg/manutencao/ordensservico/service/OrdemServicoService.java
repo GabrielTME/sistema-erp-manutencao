@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -26,9 +27,7 @@ public class OrdemServicoService {
     private final OsTecnicoRepository osTecnicoRepo;
     private final TecnicoRepository tecnicoRepo;
     private final OsHistoricoRepository historicoRepo;
-    private final EquipamentoService equipamentoService; // Para buscar dados do equipamento
-    
-    // Novos repositórios para itens
+    private final EquipamentoService equipamentoService;
     private final OsItemRepository osItemRepo;
     private final ItemEstoqueRepository itemEstoqueRepo;
 
@@ -58,20 +57,27 @@ public class OrdemServicoService {
     @Transactional
     public OrdemServicoDTO criar(OrdemServicoCreateDTO dto) {
         OrdemServico o = new OrdemServico();
-        o.setNumeroOs(dto.getNumeroOs());
+        
+        // --- GERAÇÃO AUTOMÁTICA DE NÚMERO ---
+        SimpleDateFormat sdf = new SimpleDateFormat("ddMMyy");
+        String prefixoData = "OS" + sdf.format(new Date());
+        long countHoje = ordemRepo.countByNumeroOsStartingWith(prefixoData);
+        String sequencial = String.format("%03d", countHoje + 1);
+        o.setNumeroOs(prefixoData + sequencial);
+        // ------------------------------------
+
         o.setIdEquipamento(dto.getIdEquipamento());
         o.setProblema(dto.getProblema());
         o.setDefeitoConstatado(dto.getDefeitoConstatado());
         o.setAcoesARealizar(dto.getAcoesARealizar());
         o.setStatus(dto.getStatus());
         o.setSetorLocalizacao(dto.getSetorLocalizacao());
-        o.setDataEmissao(new Date()); // Força data atual se vier nulo
+        o.setDataEmissao(new Date());
         o.setDataInicio(dto.getDataInicio());
         o.setDataFim(dto.getDataFim());
         o.setObservacoes(dto.getObservacoes());
         ordemRepo.save(o);
 
-        // Cria registro inicial no histórico
         criarHistoricoInterno(o.getId(), "OS Criada", "Ordem de serviço aberta com status " + dto.getStatus());
 
         return buscar(o.getId());
@@ -81,12 +87,10 @@ public class OrdemServicoService {
     public OrdemServicoDTO atualizar(Long id, OrdemServicoUpdateDTO dto) {
         OrdemServico o = ordemRepo.findById(id).orElseThrow(() -> new NoSuchElementException("OS não encontrada"));
         
-        // Verifica se houve mudança de status para logar no histórico
         if (dto.getStatus() != null && !dto.getStatus().equals(o.getStatus())) {
             criarHistoricoInterno(id, dto.getStatus(), "Status alterado de " + o.getStatus() + " para " + dto.getStatus());
         }
 
-        o.setNumeroOs(dto.getNumeroOs());
         o.setIdEquipamento(dto.getIdEquipamento());
         o.setProblema(dto.getProblema());
         o.setDefeitoConstatado(dto.getDefeitoConstatado());
@@ -105,7 +109,6 @@ public class OrdemServicoService {
     public void excluir(Long id) {
         if (!ordemRepo.existsById(id)) throw new NoSuchElementException("OS não encontrada");
         osTecnicoRepo.deleteByIdOs(id);
-        // TODO: Idealmente devolver itens ao estoque antes de excluir OS, mas simplificaremos
         ordemRepo.deleteById(id);
     }
 
@@ -123,7 +126,7 @@ public class OrdemServicoService {
         return inserted;
     }
 
-    // --- ITENS DA OS (PEÇAS) ---
+    // --- ITENS DA OS (PEÇAS E SERVIÇOS) ---
     @Transactional
     public OsItemDTO adicionarItem(Long idOs, OsItemCreateDTO dto) {
         if (!ordemRepo.existsById(idOs)) throw new NoSuchElementException("OS não encontrada");
@@ -131,22 +134,29 @@ public class OrdemServicoService {
         ItemEstoque estoque = itemEstoqueRepo.findById(dto.getIdItemEstoque())
                 .orElseThrow(() -> new NoSuchElementException("Item de estoque não encontrado"));
 
-        // Valida Estoque
-        if (estoque.getQuantidade() < dto.getQuantidade()) {
-            throw new IllegalArgumentException("Estoque insuficiente. Disponível: " + estoque.getQuantidade());
+        // 1. Verifica se é Serviço (para não cobrar estoque)
+        boolean isServico = "SERVICO".equals(estoque.getTipo());
+
+        if (!isServico) {
+            // Se for peça física, valida e baixa estoque
+            if (estoque.getQuantidade() < dto.getQuantidade()) {
+                throw new IllegalArgumentException("Estoque insuficiente. Disponível: " + estoque.getQuantidade());
+            }
+            estoque.setQuantidade(estoque.getQuantidade() - dto.getQuantidade());
+            itemEstoqueRepo.save(estoque);
         }
 
-        // Baixa no Estoque
-        estoque.setQuantidade(estoque.getQuantidade() - dto.getQuantidade());
-        itemEstoqueRepo.save(estoque);
+        // 2. Define o preço (Prioridade: Valor digitado > Valor do cadastro)
+        Double precoFinal = (dto.getValorPersonalizado() != null) 
+                            ? dto.getValorPersonalizado() 
+                            : estoque.getValorUnitario();
 
-        // Cria Vínculo
         OsItem item = new OsItem();
         item.setIdOs(idOs);
         item.setItemEstoque(estoque);
         item.setQuantidade(dto.getQuantidade());
-        item.setValorUnitario(estoque.getValorUnitario());
-        item.setValorTotal(estoque.getValorUnitario() * dto.getQuantidade());
+        item.setValorUnitario(precoFinal);
+        item.setValorTotal(precoFinal * dto.getQuantidade());
         
         osItemRepo.save(item);
         return mapItemToDto(item);
@@ -157,10 +167,13 @@ public class OrdemServicoService {
         OsItem item = osItemRepo.findById(idOsItem)
                 .orElseThrow(() -> new NoSuchElementException("Item da OS não encontrado"));
         
-        // Devolve ao Estoque
         ItemEstoque estoque = item.getItemEstoque();
-        estoque.setQuantidade(estoque.getQuantidade() + item.getQuantidade());
-        itemEstoqueRepo.save(estoque);
+        
+        // Só devolve ao estoque se NÃO for serviço
+        if (!"SERVICO".equals(estoque.getTipo())) {
+            estoque.setQuantidade(estoque.getQuantidade() + item.getQuantidade());
+            itemEstoqueRepo.save(estoque);
+        }
 
         osItemRepo.delete(item);
     }
@@ -191,7 +204,7 @@ public class OrdemServicoService {
         h.setIdOs(idOs);
         h.setStatus(status);
         h.setDescricao(descricao);
-        h.setDataEvento(new Date()); // Correção: Garante data atual
+        h.setDataEvento(new Date());
         historicoRepo.save(h);
         
         OsHistoricoDTO out = new OsHistoricoDTO();
@@ -210,7 +223,6 @@ public class OrdemServicoService {
         dto.setNumeroOs(o.getNumeroOs());
         dto.setIdEquipamento(o.getIdEquipamento());
         
-        // Busca dados enriquecidos do equipamento
         try {
             EquipamentoDTO eq = equipamentoService.buscar(o.getIdEquipamento());
             dto.setNomeEquipamento(eq.getNome());
@@ -229,7 +241,6 @@ public class OrdemServicoService {
         dto.setDataFim(o.getDataFim());
         dto.setObservacoes(o.getObservacoes());
         
-        // Busca IDs dos técnicos
         dto.setTecnicos(osTecnicoRepo.findByIdOs(o.getId()).stream().map(OsTecnico::getIdTecnico).collect(Collectors.toList()));
         
         return dto;
