@@ -14,11 +14,11 @@ const StockGroupList = () => {
   // Estados para MODAL DE SUBGRUPO
   const [isSubModalOpen, setSubModalOpen] = useState(false);
   const [subName, setSubName] = useState('');
-  const [selectedGroupId, setSelectedGroupId] = useState(null); // Para saber onde adicionar o subgrupo
+  const [selectedGroupId, setSelectedGroupId] = useState(null); 
   
-  // Para expandir/visualizar subgrupos na lista (Accordion simples)
+  // Para expandir/visualizar subgrupos
   const [expandedGroupId, setExpandedGroupId] = useState(null);
-  const [subgroupsMap, setSubgroupsMap] = useState({}); // Cache de subgrupos carregados { idGrupo: [lista] }
+  const [subgroupsMap, setSubgroupsMap] = useState({}); 
 
   // --- CARREGAR DADOS ---
   const fetchGroups = async () => {
@@ -85,8 +85,7 @@ const StockGroupList = () => {
       alert('Subgrupo criado!');
       setSubModalOpen(false);
       setSubName('');
-      fetchSubgroups(selectedGroupId); // Recarrega a lista daquele grupo
-      // Se o grupo não estava expandido, expande para ver o novo item
+      fetchSubgroups(selectedGroupId); 
       if (expandedGroupId !== selectedGroupId) setExpandedGroupId(selectedGroupId);
     } catch (error) {
       alert('Erro ao criar subgrupo.');
@@ -110,7 +109,7 @@ const StockGroupList = () => {
       setExpandedGroupId(null);
     } else {
       setExpandedGroupId(idGrupo);
-      fetchSubgroups(idGrupo); // Busca os subgrupos ao abrir
+      fetchSubgroups(idGrupo); 
     }
   };
 
@@ -142,7 +141,8 @@ const StockGroupList = () => {
                     </td>
                     <td>
                       <button className="btn btn-primary" style={{fontSize: '0.8rem', marginRight: 5}} onClick={() => openSubModal(g.id)}>+ Subgrupo</button>
-                      <button className="btn btn-danger" style={{fontSize: '0.8rem'}} onClick={() => handleDeleteGroup(g.id)}>Excluir Grupo</button>
+                      {/* MUDANÇA 1: Texto do botão simplificado */}
+                      <button className="btn btn-danger" style={{fontSize: '0.8rem'}} onClick={() => handleDeleteGroup(g.id)}>Excluir</button>
                     </td>
                   </tr>
                   {/* Linha de Subgrupos (Expandida) */}
@@ -175,7 +175,8 @@ const StockGroupList = () => {
       <Modal isOpen={isGroupModalOpen} onClose={() => setGroupModalOpen(false)} title="Novo Grupo">
          <div className="form-group">
             <label>Nome do Grupo</label>
-            <input value={groupName} onChange={e => setGroupName(e.target.value)} placeholder="Ex: Elétrica" />
+            {/* MUDANÇA 2: Placeholder ajustado */}
+            <input value={groupName} onChange={e => setGroupName(e.target.value)} placeholder="Ex.: Elétrica" />
          </div>
          <div className="modal-actions">
            <button className="btn btn-secondary" onClick={() => setGroupModalOpen(false)}>Cancelar</button>
@@ -187,7 +188,8 @@ const StockGroupList = () => {
       <Modal isOpen={isSubModalOpen} onClose={() => setSubModalOpen(false)} title="Novo Subgrupo">
          <div className="form-group">
             <label>Nome do Subgrupo</label>
-            <input value={subName} onChange={e => setSubName(e.target.value)} placeholder="Ex: Cabos" />
+            {/* MUDANÇA 3: Placeholder ajustado */}
+            <input value={subName} onChange={e => setSubName(e.target.value)} placeholder="Ex.: Cabos" />
          </div>
          <div className="modal-actions">
            <button className="btn btn-secondary" onClick={() => setSubModalOpen(false)}>Cancelar</button>

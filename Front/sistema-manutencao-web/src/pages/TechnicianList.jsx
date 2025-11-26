@@ -98,7 +98,6 @@ const TechnicianList = () => {
            <h1>Gestão de Técnicos</h1>
         </div>
         
-        {/* Agrupamento de Botões de Ação */}
         <div>
             <Link to="/tecnicos/categorias" className="btn btn-secondary" style={{ marginRight: '1rem' }}>
                 Gerenciar Categorias
@@ -113,7 +112,8 @@ const TechnicianList = () => {
             <thead>
               <tr>
                 <th>Nome</th>
-                <th>Especialidade</th>
+                {/* MUDANÇA 1: Cabeçalho alterado */}
+                <th>Categoria</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -139,7 +139,7 @@ const TechnicianList = () => {
         )}
       </div>
 
-      {/* MODAL (Reutilizei estrutura para evitar duplicidade de código visual) */}
+      {/* MODAL */}
       {[isAddModalOpen, isEditModalOpen].map((isOpen, index) => {
         if (!isOpen) return null;
         const isEdit = index === 1;
@@ -151,9 +151,11 @@ const TechnicianList = () => {
                 <input name="nome" value={formData.nome} onChange={handleInputChange} />
              </div>
              <div className="form-group">
-                <label>Categoria / Especialidade</label>
+                {/* MUDANÇA 2: Label alterado */}
+                <label>Categoria</label>
                 <select name="idCategoria" value={formData.idCategoria} onChange={handleInputChange} className="form-select">
-                   <option value="">Selecione...</option>
+                   {/* MUDANÇA 3: Placeholder do select alterado */}
+                   <option value="">Selecione uma categoria</option>
                    {categories.map(c => (
                      <option key={c.id} value={c.id}>{c.nome}</option>
                    ))}

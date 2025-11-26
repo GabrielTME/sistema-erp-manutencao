@@ -19,7 +19,6 @@ const BrandList = () => {
   const fetchBrands = async () => {
     try {
       setLoading(true);
-      // Busca marcas ordenadas pelo nome
       const response = await api.get('/marcas?size=100&sort=nome');
       setBrands(response.data.content);
     } catch (error) {
@@ -66,7 +65,7 @@ const BrandList = () => {
       await api.post('/marcas', formData);
       alert('Marca cadastrada com sucesso!');
       setAddModalOpen(false);
-      fetchBrands(); // Recarrega a lista
+      fetchBrands(); 
     } catch (error) {
       console.error("Erro ao cadastrar:", error);
       alert("Erro ao cadastrar marca.");
@@ -104,30 +103,46 @@ const BrandList = () => {
       <div className="page-header">
         <div className="page-header-left">
           <Link to="/" className="btn btn-secondary btn-back">&larr; Voltar</Link>
-          <h1>Gestão de Marcas</h1>
+          <h1>Cadastro de Marcas</h1>
         </div>
-        <button className="btn btn-primary" onClick={openAddModal}>+ Nova Marca</button>
+        <button className="btn btn-primary" onClick={openAddModal}>+ Adicionar Marca</button>
       </div>
 
       <div className="table-wrapper">
         {loading ? <p>Carregando...</p> : (
-          <table>
+          <table style={{width: '100%', tableLayout: 'fixed'}}>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Nome da Marca</th>
-                <th>Especificações / Detalhes</th>
-                <th>Ações</th>
+                <th style={{width: '10%', textAlign: 'left', paddingLeft: '2rem'}}>ID</th>
+                <th style={{width: '30%', textAlign: 'left'}}>Nome da Marca</th>
+                <th style={{width: '40%', textAlign: 'left'}}>Especificações</th>
+                {/* CABEÇALHO ALINHADO À ESQUERDA */}
+                <th style={{width: '20%', textAlign: 'left'}}>Ações</th>
               </tr>
             </thead>
             <tbody>
               {brands.length > 0 ? (
                 brands.map((brand) => (
                   <tr key={brand.id}>
-                    <td><span className="id-tag">{brand.id}</span></td>
-                    <td><strong>{brand.name}</strong></td>
-                    <td>{brand.specifications || '-'}</td>
-                    <td>
+                    <td style={{textAlign: 'left', paddingLeft: '2rem'}}>
+                        <span style={{
+                            backgroundColor: '#e2e8f0', 
+                            color: '#475569',           
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontWeight: 'bold',
+                            fontSize: '0.85rem',
+                            fontFamily: 'monospace',    
+                            display: 'inline-block'
+                        }}>
+                            {brand.id}
+                        </span>
+                    </td>
+                    <td style={{textAlign: 'left'}}><strong>{brand.name}</strong></td>
+                    <td style={{textAlign: 'left'}}>{brand.specifications || '-'}</td>
+                    
+                    {/* BOTÕES ALINHADOS À ESQUERDA */}
+                    <td style={{textAlign: 'left'}}>
                       <button className="btn btn-secondary" onClick={() => openEditModal(brand)}>Editar</button>
                       <button className="btn btn-danger" style={{marginLeft: '5px'}} onClick={() => handleDeleteClick(brand.id)}>Excluir</button>
                     </td>
@@ -135,7 +150,7 @@ const BrandList = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" style={{textAlign: 'center'}}>Nenhuma marca cadastrada.</td>
+                  <td colSpan="4" style={{textAlign: 'center', padding: '2rem', color: '#64748b'}}>Nenhuma marca cadastrada.</td>
                 </tr>
               )}
             </tbody>
@@ -144,15 +159,18 @@ const BrandList = () => {
       </div>
 
       {/* MODAL ADICIONAR */}
-      <Modal isOpen={isAddModalOpen} onClose={() => setAddModalOpen(false)} title="Nova Marca">
+      <Modal isOpen={isAddModalOpen} onClose={() => setAddModalOpen(false)} title="Adicionar Marca">
+         <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
+            Preencha as informações da nova marca.
+         </p>
+
          <div className="form-group">
-            <label>Nome da Marca *</label>
+            <label>Nome da Marca</label>
             <input 
               type="text" 
               name="name" 
               value={formData.name} 
               onChange={handleInputChange} 
-              placeholder="Ex: Bosch, Makita, Weg..."
             />
          </div>
          <div className="form-group">
@@ -162,19 +180,31 @@ const BrandList = () => {
               value={formData.specifications} 
               onChange={handleInputChange} 
               rows="3"
-              placeholder="Informações de contato ou detalhes técnicos..."
+              placeholder="Ex.: Equipamentos hidráulicos de alta pressão"
+              style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  fontSize: '1rem',
+                  fontFamily: 'inherit',
+                  resize: 'vertical'
+              }}
             />
          </div>
          <div className="modal-actions">
            <button className="btn btn-secondary" onClick={() => setAddModalOpen(false)}>Cancelar</button>
-           <button className="btn btn-primary" onClick={handleAddBrand}>Salvar</button>
+           <button className="btn btn-primary" onClick={handleAddBrand}>Adicionar</button>
          </div>
       </Modal>
 
       {/* MODAL EDITAR */}
       <Modal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)} title="Editar Marca">
+         <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
+            Modifique as informações da marca.
+         </p>
          <div className="form-group">
-            <label>Nome da Marca *</label>
+            <label>Nome da Marca</label>
             <input 
               type="text" 
               name="name" 
@@ -189,6 +219,15 @@ const BrandList = () => {
               value={formData.specifications} 
               onChange={handleInputChange} 
               rows="3"
+              style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  fontSize: '1rem',
+                  fontFamily: 'inherit',
+                  resize: 'vertical'
+              }}
             />
          </div>
          <div className="modal-actions">

@@ -26,7 +26,7 @@ const StockList = () => {
     codigoProduto: '',
     quantidade: '',
     quantidadeEmEstoque: 0,
-    valorUnitario: '',
+    valorUnitario: '', // Será armazenado como número (float)
     idGrupo: '', 
     idSubgrupo: ''
   };
@@ -70,6 +70,26 @@ const StockList = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // --- MÁSCARA DE MOEDA (AJUSTADA) ---
+  const handlePriceChange = (e) => {
+    let value = e.target.value;
+    
+    // Remove tudo que não é dígito
+    value = value.replace(/\D/g, "");
+
+    // Converte para número (divide por 100 para considerar centavos)
+    const numericValue = value ? parseFloat(value) / 100 : '';
+
+    setFormData(prev => ({ ...prev, valorUnitario: numericValue }));
+  };
+
+  // Função auxiliar para formatar o valor no input sem espaço
+  const getFormattedPriceForInput = (value) => {
+      if (!value) return '';
+      // Formata como moeda e remove qualquer tipo de espaço (normal ou non-breaking space)
+      return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace(/\s/g, '').replace(/\u00A0/g, '');
   };
 
   const handleFileChange = (e) => {
@@ -158,6 +178,8 @@ const StockList = () => {
 
   // --- HELPERS VISUAIS ---
   const formatCurrency = (value) => {
+    if (value === undefined || value === null) return 'R$0,00';
+    // Formata e remove espaços manualmente
     return `R$${value.toFixed(2).replace('.', ',')}`;
   };
 
@@ -172,7 +194,7 @@ const StockList = () => {
         </div>
         <div>
            <Link to="/estoque/grupos" className="btn btn-secondary" style={{marginRight: '1rem'}}>Gerenciar Grupos</Link>
-           <button className="btn btn-primary" onClick={openAdd}>+ Novo Item</button>
+           <button className="btn btn-primary" onClick={openAdd}>+ Adicionar Item</button>
         </div>
       </div>
 
@@ -257,7 +279,6 @@ const StockList = () => {
               </tbody>
             </table>
             
-            {/* RODAPÉ */}
             <div style={{
                 padding: '1.5rem', 
                 borderTop: '1px solid #e2e8f0', 
@@ -285,7 +306,6 @@ const StockList = () => {
           <Modal key={index} isOpen={true} onClose={() => isEdit ? setEditModalOpen(false) : setAddModalOpen(false)} 
                  title={modalTitle}>
              
-             {/* TEXTO ALTERADO AQUI */}
              <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
                 {isEdit ? "Modifique as informações do item em estoque." : "Preencha as informações do novo item para o estoque."}
              </p>
@@ -323,7 +343,14 @@ const StockList = () => {
                  </div>
                  <div className="form-group" style={{flex: 1}}>
                     <label>Valor Unitário (R$)</label>
-                    <input type="number" step="0.01" name="valorUnitario" value={formData.valorUnitario} onChange={handleInputChange} />
+                    {/* USANDO A FUNÇÃO AUXILIAR PARA REMOVER O ESPAÇO */}
+                    <input 
+                        type="text" 
+                        name="valorUnitario" 
+                        value={getFormattedPriceForInput(formData.valorUnitario)} 
+                        onChange={handlePriceChange}
+                        placeholder="R$0,00"
+                    />
                  </div>
              </div>
 
