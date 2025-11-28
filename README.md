@@ -1,6 +1,6 @@
-# 🛠️ Sistema de Manutenção — Backend + Frontend (Spring Boot, SQLite, React)
+# 🛠️ Sistema ERP de Manutenção — Backend + Frontend (Spring Boot, SQLite, React)
 
-Este repositório contém o **backend (API REST)** desenvolvido em **Spring Boot + SQLite** e o **frontend** estruturado em **React + Vite**, compondo o Sistema de Manutenção para controle de equipamentos, técnicos, ordens de serviço e estoque.
+Este repositório contém o **backend (API REST)** desenvolvido em **Spring Boot + SQLite** e o **frontend** estruturado em **React + Vite**, compondo o Sistema ERP de Manutenção para controle de equipamentos, técnicos, ordens de serviço e estoque.
 
 ---
 
@@ -208,6 +208,7 @@ Front/
 ├── src/
 │   ├── components/
 │   ├── pages/
+│   ├── services/
 │   ├── App.jsx
 │   └── main.jsx
 ```
