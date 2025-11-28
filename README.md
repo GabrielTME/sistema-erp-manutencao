@@ -254,7 +254,8 @@ export const api = axios.create({
 ---
 
 # 👤 Autores
-Gabriel Tomé
-Lucas Vitali Magenis
-Luiz Antônio Coral da Silva
-Tiago Fritzen Palácio
+
+- Gabriel Tomé
+- Lucas Vitali Magenis
+- Luiz Antônio Coral da Silva
+- Tiago Fritzen Palácio
