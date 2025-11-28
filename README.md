@@ -50,16 +50,12 @@ O backend implementa uma API RESTful completa, seguindo arquitetura em camadas (
 Conexão configurada em `application.properties`:
 
 ```
-spring.datasource.url=jdbc:sqlite:./database.db?foreign_keys=on
-spring.datasource.driver-class-name=org.sqlite.JDBC
-spring.jpa.database-platform=org.hibernate.dialect.SQLiteDialect
-spring.jpa.hibernate.ddl-auto=update
-server.port=8000
+server.port=8080
 ```
 
 Arquivos importantes:
 
-- `database.db` → Banco ativo utilizado pela API  
+- `gestao_os.db` → Banco ativo utilizado pela API  
 - `db/sqlite_schema_full.sql` → Estrutura completa do schema
 
 ---
@@ -69,7 +65,7 @@ Arquivos importantes:
 Na pasta:
 
 ```
-Back + Banco/SistemaWeb6/SistemaWeb
+Back + Banco/SistemaWeb/SistemaWeb
 ```
 
 Execute:
@@ -80,7 +76,7 @@ mvn spring-boot:run
 
 O backend sobe em:
 
-👉 **http://localhost:8000**
+👉 **http://localhost:8080**
 
 ---
 
@@ -89,7 +85,7 @@ O backend sobe em:
 Base URL:
 
 ```
-http://localhost:8000/api
+http://localhost:8080/api
 ```
 
 ---
@@ -104,7 +100,8 @@ Lista todos os equipamentos.
 {
   "nome": "Compressor",
   "foto": "img.png",
-  "idMarca": 1
+  "idMarca": 1,
+  "etc": "etc"
 }
 ```
 
@@ -167,14 +164,15 @@ Detalhes completos.
   "problema": "Falha no motor",
   "setorLocalizacao": "Linha 3",
   "idEquipamento": 1,
-  "tecnicosIds": [1, 3]
+  "tecnicosIds": [1, 3],
+  "etc": "etc"
 }
 ```
 
 ### PUT /ordens/{id}/status
 ```json
 {
-  "novoStatus": "Concluído"
+  "novoStatus": "Concluída"
 }
 ```
 
@@ -206,13 +204,10 @@ O frontend foi desenvolvido em React + Vite, com estrutura modular e integraçã
 ## 📁 Estrutura Sugerida do Frontend
 
 ```
-sistema-manutencao-web/
+Front/
 ├── src/
-│   ├── api/
 │   ├── components/
 │   ├── pages/
-│   ├── hooks/
-│   ├── context/
 │   ├── App.jsx
 │   └── main.jsx
 ```
@@ -236,13 +231,13 @@ Acesse:
 
 ## 🔗 Integração com Backend
 
-Arquivo sugerido `src/api/api.js`:
+Arquivo sugerido `src/services/api.js`:
 
 ```javascript
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: "http://localhost:8080/api",
 });
 ```
 
@@ -258,9 +253,8 @@ export const api = axios.create({
 
 ---
 
-# 👤 Autor  
-**Gabriel Tomé**
-**Lucas Vitali Magenis**  
-**Luiz Antônio Coral da Silva**  
-**Tiago Fritzen Palácio**
-Sistema de Manutenção — Engenharia de Software
+# 👤 Autores
+Gabriel Tomé
+Lucas Vitali Magenis
+Luiz Antônio Coral da Silva
+Tiago Fritzen Palácio

@@ -30,7 +30,7 @@ public class EquipamentoController {
         return service.buscar(id);
     }
 
-    // POST agora recebe MultipartFile e parametros via form-data
+    // POST agora recebe MultipartFile e parâmetros via form-data
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<EquipamentoDTO> criar(
             @RequestParam("nome") String nome,

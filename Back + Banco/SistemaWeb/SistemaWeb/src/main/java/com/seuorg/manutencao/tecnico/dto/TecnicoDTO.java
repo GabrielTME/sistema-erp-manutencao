@@ -4,7 +4,7 @@ public class TecnicoDTO {
     private Long id;
     private String nome;
     private String especialidade; // Nome da categoria para exibição
-    private Long idCategoria;     // ID para formulários
+    private Long idCategoria;     // ID pra formulários
 
     public TecnicoDTO(Long id, String nome, String especialidade, Long idCategoria) {
         this.id = id;

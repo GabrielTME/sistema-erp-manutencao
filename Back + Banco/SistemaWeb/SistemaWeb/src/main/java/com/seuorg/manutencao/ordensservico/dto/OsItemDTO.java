@@ -16,7 +16,7 @@ public class OsItemDTO {
         this.quantidade = quantidade; this.valorUnitario = valorUnitario; this.valorTotal = valorTotal;
     }
 
-    // Getters e Setters
+    // Getters e setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getIdOs() { return idOs; }

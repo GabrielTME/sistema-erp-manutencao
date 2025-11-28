@@ -12,15 +12,15 @@ const TechnicianList = () => {
   const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   
-  // Form States
+  // Form states
   const [currentId, setCurrentId] = useState(null);
   const [formData, setFormData] = useState({ nome: '', idCategoria: '' });
 
-  // --- BUSCAS ---
+  // Buscas
   const loadData = async () => {
     setLoading(true);
     try {
-      // Busca categorias para o Select
+      // Busca categorias para o select
       const cats = await api.get('/tecnicos/categorias');
       setCategories(cats.data);
 
@@ -38,7 +38,7 @@ const TechnicianList = () => {
     loadData();
   }, []);
 
-  // --- HANDLERS ---
+  // Handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -55,7 +55,7 @@ const TechnicianList = () => {
     setEditModalOpen(true);
   };
 
-  // --- AÇÕES API ---
+  // Ações API
   const handleSave = async (isEdit) => {
     if (!formData.nome || !formData.idCategoria) {
       alert("Preencha nome e escolha uma categoria.");
@@ -112,7 +112,6 @@ const TechnicianList = () => {
             <thead>
               <tr>
                 <th>Nome</th>
-                {/* MUDANÇA 1: Cabeçalho alterado */}
                 <th>Categoria</th>
                 <th>Ações</th>
               </tr>
@@ -139,7 +138,7 @@ const TechnicianList = () => {
         )}
       </div>
 
-      {/* MODAL */}
+      {/* Modal */}
       {[isAddModalOpen, isEditModalOpen].map((isOpen, index) => {
         if (!isOpen) return null;
         const isEdit = index === 1;
@@ -151,10 +150,8 @@ const TechnicianList = () => {
                 <input name="nome" value={formData.nome} onChange={handleInputChange} />
              </div>
              <div className="form-group">
-                {/* MUDANÇA 2: Label alterado */}
                 <label>Categoria</label>
                 <select name="idCategoria" value={formData.idCategoria} onChange={handleInputChange} className="form-select">
-                   {/* MUDANÇA 3: Placeholder do select alterado */}
                    <option value="">Selecione uma categoria</option>
                    {categories.map(c => (
                      <option key={c.id} value={c.id}>{c.nome}</option>

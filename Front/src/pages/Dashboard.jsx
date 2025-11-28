@@ -11,7 +11,7 @@ const Dashboard = () => {
       </div>
       <div className="dashboard-cards">
         
-        {/* 1. EQUIPAMENTOS */}
+        {/* 1. Equipamentos */}
         <Link to="/equipamentos" className="card">
           <div className="card-icon blue">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -25,7 +25,7 @@ const Dashboard = () => {
           <button className="btn btn-primary">Acessar</button>
         </Link>
         
-        {/* 2. ESTOQUE */}
+        {/* 2. Estoque */}
         <Link to="/estoque" className="card">
           <div className="card-icon green">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -39,7 +39,7 @@ const Dashboard = () => {
           <button className="btn btn-primary">Acessar</button>
         </Link>
         
-        {/* 3. ORDENS DE SERVIÇO */}
+        {/* 3. Ordens de serviço */}
         <Link to="/ordens-de-servico" className="card">
           <div className="card-icon orange">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -55,7 +55,7 @@ const Dashboard = () => {
           <button className="btn btn-primary">Acessar</button>
         </Link>
         
-        {/* 4. MARCAS */}
+        {/* 4. Marcas */}
         <Link to="/marcas" className="card">
           <div className="card-icon purple">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -68,7 +68,7 @@ const Dashboard = () => {
           <button className="btn btn-primary">Acessar</button>
         </Link>
 
-        {/* 5. TÉCNICOS (Cor definida como RED) */}
+        {/* 5. Técnicos */}
         <Link to="/tecnicos" className="card">
           <div className="card-icon red">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

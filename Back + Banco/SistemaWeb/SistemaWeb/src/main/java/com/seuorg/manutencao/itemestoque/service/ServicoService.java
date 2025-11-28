@@ -15,10 +15,10 @@ public class ServicoService {
     }
 
     public ItemEstoqueDTO criarServico(String nome) {
-        // 1. Gera o código SRV sequencial
+        // Gera o código SRV sequencial
         String novoCodigo = gerarProximoCodigoSRV();
 
-        // 2. Cria o item
+        // Cria o item
         ItemEstoque servico = new ItemEstoque();
         servico.setNome(nome);
         servico.setCodigoProduto(novoCodigo);
@@ -26,9 +26,6 @@ public class ServicoService {
         servico.setQuantidadeEmEstoque(0);
         servico.setValorUnitario(0.0); // Valor base é 0, será definido na hora da OS
         servico.setTipo("SERVICO");    // Marcação para o Front saber que é serviço
-        
-        // Opcional: Se quiser vincular a um grupo padrão, pode fazer aqui
-        // servico.setSubgrupo(...);
 
         repository.save(servico);
         return mapToDTO(servico);
@@ -49,7 +46,7 @@ public class ServicoService {
     }
 
     private ItemEstoqueDTO mapToDTO(ItemEstoque i) {
-        // Reaproveita o DTO existente (simplificado aqui)
+        // Reaproveita o DTO existente
         return new ItemEstoqueDTO(
             i.getId(), i.getNome(), i.getCodigoProduto(), 
             i.getQuantidade(), i.getQuantidadeEmEstoque(), 

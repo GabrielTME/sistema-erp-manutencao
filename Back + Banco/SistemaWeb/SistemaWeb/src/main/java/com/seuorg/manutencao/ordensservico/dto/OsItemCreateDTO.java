@@ -3,7 +3,7 @@ package com.seuorg.manutencao.ordensservico.dto;
 public class OsItemCreateDTO {
     private Long idItemEstoque;
     private Integer quantidade;
-    private Double valorPersonalizado; // Campo Novo
+    private Double valorPersonalizado;
 
     public Long getIdItemEstoque() { return idItemEstoque; }
     public void setIdItemEstoque(Long idItemEstoque) { this.idItemEstoque = idItemEstoque; }

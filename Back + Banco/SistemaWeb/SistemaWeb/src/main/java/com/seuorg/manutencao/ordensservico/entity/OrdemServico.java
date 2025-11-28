@@ -45,8 +45,6 @@ public class OrdemServico {
     @Column(name = "observacoes")
     private String observacoes;
 
-    // No direct relation to tecnico here; os_tecnicos will map the many-to-many association.
-
     public OrdemServico() {}
 
     public Long getId() { return id; }

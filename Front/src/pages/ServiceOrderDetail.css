@@ -28,7 +28,7 @@
     font-size: 1.1rem;
   }
   
-  /* TABS */
+  /* Tabs */
   .tabs-header {
     display: flex;
     gap: 1rem;
@@ -60,7 +60,7 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   }
   
-  /* Badge de Status */
+  /* Badge de status */
   .status-badge {
     padding: 0.5rem 1rem;
     border-radius: 20px;
@@ -76,3 +76,4 @@
       font-size: 1.2rem;
       font-weight: bold;
   }
+  

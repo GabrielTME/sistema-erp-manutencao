@@ -13,17 +13,17 @@ const EquipmentList = () => {
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isPhotoModalOpen, setPhotoModalOpen] = useState(false);
   
-  // Estados de Seleção
+  // Estados de seleção
   const [currentEquipment, setCurrentEquipment] = useState(null);
   const [selectedPhotoUrl, setSelectedPhotoUrl] = useState('');
 
-  // Estados dos Formulários
+  // Estados dos formulários
   const [name, setName] = useState('');
   const [brandId, setBrandId] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
 
-  // --- BUSCAR DADOS ---
+  // Buscar dados
   const fetchBrands = async () => {
     try {
       const response = await api.get('/marcas?size=100&sort=nome'); 
@@ -59,7 +59,7 @@ const EquipmentList = () => {
     fetchEquipments(); 
   }, []);
 
-  // --- HANDLERS ---
+  // Handlers
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -89,7 +89,7 @@ const EquipmentList = () => {
     setEditModalOpen(true);
   };
 
-  // --- AÇÕES DE API ---
+  // Ações de API
   const handleAddEquipment = async () => {
     if (!name || !brandId) {
       alert('Nome e Marca são obrigatórios.');
@@ -227,7 +227,7 @@ const EquipmentList = () => {
         )}
       </div>
 
-      {/* MODAL ADICIONAR */}
+      {/* Modal adicionar */}
       <Modal isOpen={isAddModalOpen} onClose={() => setAddModalOpen(false)} title="Adicionar Equipamento">
          <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
             Preencha as informações do novo equipamento.
@@ -291,7 +291,7 @@ const EquipmentList = () => {
          </div>
       </Modal>
 
-      {/* MODAL EDITAR */}
+      {/* Modal editar */}
       <Modal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)} title="Editar Equipamento">
          <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
             Modifique as informações do equipamento.
@@ -355,7 +355,7 @@ const EquipmentList = () => {
          </div>
       </Modal>
 
-      {/* MODAL FOTO GRANDE */}
+      {/* Modal foto grande */}
       <Modal isOpen={isPhotoModalOpen} onClose={() => setPhotoModalOpen(false)} title="Visualizar Foto">
         <img src={selectedPhotoUrl} alt="Grande" className="photo-modal-img" />
       </Modal>

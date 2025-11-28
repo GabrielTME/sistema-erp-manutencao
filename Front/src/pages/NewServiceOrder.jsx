@@ -6,12 +6,12 @@ const NewServiceOrder = () => {
   const navigate = useNavigate();
   const priceInputRef = useRef(null); 
   
-  // Listas de Dados
+  // Listas de dados
   const [equipments, setEquipments] = useState([]);
   const [allTechnicians, setAllTechnicians] = useState([]); 
   const [stockItems, setStockItems] = useState([]); 
 
-  // Estados de Seleção Temporária
+  // Estados de seleção temporária
   const [selectedTechId, setSelectedTechId] = useState(''); 
   const [assignedTechnicians, setAssignedTechnicians] = useState([]); 
   
@@ -20,7 +20,7 @@ const NewServiceOrder = () => {
   const [partUnitPrice, setPartUnitPrice] = useState(''); 
   const [assignedParts, setAssignedParts] = useState([]); 
 
-  // Estado do Formulário
+  // Estado do formulário
   const [formData, setFormData] = useState({
     numeroOs: '', 
     idEquipamento: '',
@@ -32,7 +32,7 @@ const NewServiceOrder = () => {
     observacoes: ''
   });
 
-  // Carrega Listas
+  // Carrega listas
   const loadLists = async () => {
     try {
       const resEq = await api.get('/equipamentos?size=100');
@@ -57,7 +57,7 @@ const NewServiceOrder = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- TÉCNICOS ---
+  // Técnicos
   const handleAddTechnician = () => {
     if (!selectedTechId) return;
     if (assignedTechnicians.some(t => t.id === Number(selectedTechId))) {
@@ -75,7 +75,7 @@ const NewServiceOrder = () => {
       setAssignedTechnicians(assignedTechnicians.filter(t => t.id !== idToRemove));
   };
 
-  // --- PEÇAS E SERVIÇOS ---
+  // Peças e serviços
 
   const handlePartSelection = (e) => {
       const id = e.target.value;
@@ -91,7 +91,7 @@ const NewServiceOrder = () => {
       }
   };
 
-  // Horas Técnicas
+  // Horas técnicas
   const handleSelectHorasTecnicas = async () => {
       const SERVICE_NAME = "Horas Técnicas de Manutenção";
       
@@ -158,7 +158,7 @@ const NewServiceOrder = () => {
   
   const totalGeralPecas = assignedParts.reduce((acc, item) => acc + (item.precoPraticado * item.qtdSolicitada), 0);
 
-  // --- SALVAR ---
+  // Salvar
   const handleSubmit = async () => {
     if (!formData.idEquipamento) {
       alert("Selecione o Equipamento.");
@@ -215,7 +215,7 @@ const NewServiceOrder = () => {
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: '1rem'
       }}>
          
-         {/* 1. N° OS e STATUS */}
+         {/* 1. No. O. S. e status */}
          <div style={{display: 'flex', gap: '1rem', width: '100%'}}>
              <div className="form-group" style={{flex: 1}}>
                 <label>N° da O. S.</label>
@@ -236,7 +236,7 @@ const NewServiceOrder = () => {
              </div>
          </div>
 
-         {/* 2. EQUIPAMENTO */}
+         {/* 2. Equipamento */}
          <div className="form-group" style={{width: '100%'}}>
             <label>Equipamento</label> 
             <select name="idEquipamento" value={formData.idEquipamento} onChange={handleInputChange} className="form-select">
@@ -247,19 +247,19 @@ const NewServiceOrder = () => {
             </select>
          </div>
 
-         {/* 3. SETOR */}
+         {/* 3. Setor */}
          <div className="form-group" style={{width: '100%'}}>
             <label>Setor / Localização da máquina</label>
             <input name="setorLocalizacao" value={formData.setorLocalizacao} onChange={handleInputChange} style={inputStyle} />
          </div>
 
-         {/* 4. PROBLEMA */}
+         {/* 4. Problema */}
          <div className="form-group" style={{width: '100%'}}>
             <label>Problema</label>
             <input name="problema" value={formData.problema} onChange={handleInputChange} placeholder="Descreva o problema relatado" style={inputStyle} />
          </div>
 
-         {/* 5. DEFEITO e AÇÕES */}
+         {/* 5. Defeito e ações */}
          <div style={{display: 'flex', gap: '1rem', width: '100%'}}>
              <div className="form-group" style={{flex: 1}}>
                 <label>Defeito Constatado</label>
@@ -271,7 +271,7 @@ const NewServiceOrder = () => {
              </div>
          </div>
 
-         {/* 6. TÉCNICOS */}
+         {/* 6. Técnicos */}
          <div className="form-group" style={{width: '100%', background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
             <label>Técnicos Responsáveis</label>
             <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
@@ -291,13 +291,13 @@ const NewServiceOrder = () => {
             </div>
          </div>
 
-         {/* 7. OBSERVAÇÕES */}
+         {/* 7. Observações */}
          <div className="form-group" style={{width: '100%'}}>
             <label>Observações</label>
             <textarea name="observacoes" rows="2" value={formData.observacoes} onChange={handleInputChange} style={inputStyle} placeholder="Digite observações gerais sobre a ordem de serviço" />
          </div>
 
-         {/* 8. PEÇAS E SERVIÇOS */}
+         {/* 8. Peças e serviços */}
          <div className="form-group" style={{width: '100%', background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
             <label>Peças/Serviços</label>
             
@@ -318,7 +318,6 @@ const NewServiceOrder = () => {
                 <div style={{flex: 2, minWidth: '100px'}}>
                     <label style={{fontSize: '0.8rem', color: '#64748b'}}>Valor Unit. (R$)</label>
                     
-                    {/* INPUT ALTERADO PARA TEXTO FORMATADO READ-ONLY */}
                     <input 
                         ref={priceInputRef}
                         type="text" 
@@ -335,7 +334,7 @@ const NewServiceOrder = () => {
                 <button className="btn btn-primary" onClick={handleAddPart}>+ Adicionar Item</button>
             </div>
             
-            {/* TABELA DE ITENS (VISIBILIDADE CONDICIONAL) */}
+            {/* Tabela de itens */}
             {assignedParts.length > 0 ? (
                 <>
                 <table style={{width: '100%', borderCollapse: 'collapse', background: 'white', borderRadius: '4px', overflow: 'hidden'}}>

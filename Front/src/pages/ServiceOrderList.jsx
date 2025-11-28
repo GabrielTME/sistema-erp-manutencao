@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import api from '../services/api';
 
 const ServiceOrderList = () => {
-  const [orders, setOrders] = useState([]); // Lista Original (Banco)
-  const [filteredOrders, setFilteredOrders] = useState([]); // Lista Filtrada (Tela)
+  const [orders, setOrders] = useState([]); // Lista original (banco)
+  const [filteredOrders, setFilteredOrders] = useState([]); // Lista filtrada (tela)
   const [loading, setLoading] = useState(true);
 
-  // Estados dos Filtros
+  // Estados dos filtros
   const [filters, setFilters] = useState({
     problema: '',
     equipamento: '',
@@ -36,7 +36,7 @@ const ServiceOrderList = () => {
     fetchOrders();
   }, []);
 
-  // --- LÓGICA DE FILTRAGEM ---
+  // Lógica de filtragem
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -44,27 +44,27 @@ const ServiceOrderList = () => {
 
   const handleSearch = () => {
     const results = orders.filter(os => {
-        // 1. Filtro de Problema
+        // 1. Filtro de problema
         const matchProblema = filters.problema 
             ? (os.problema && os.problema.toLowerCase().includes(filters.problema.toLowerCase())) 
             : true;
 
-        // 2. Filtro de Equipamento
+        // 2. Filtro de equipamento
         const matchEquipamento = filters.equipamento
             ? (os.nomeEquipamento && os.nomeEquipamento.toLowerCase().includes(filters.equipamento.toLowerCase()))
             : true;
 
-        // 3. Filtro de Setor
+        // 3. Filtro de setor
         const matchSetor = filters.setor
             ? (os.setorLocalizacao && os.setorLocalizacao.toLowerCase().includes(filters.setor.toLowerCase()))
             : true;
 
-        // 4. Filtro de Status
+        // 4. Filtro de status
         const matchStatus = filters.status
             ? os.status === filters.status
             : true;
 
-        // 5. Filtro de Data
+        // 5. Filtro de data
         let matchData = true;
         if (filters.dataInicio || filters.dataFim) {
             const dataOS = new Date(os.dataEmissao).setHours(0,0,0,0);
@@ -86,7 +86,7 @@ const ServiceOrderList = () => {
       setFilteredOrders(orders); // Restaura lista original
   };
 
-  // --- HELPERS ---
+  // Helpers
   const getStatusColor = (status) => {
     switch (status) {
       case 'EM_ANDAMENTO': return '#eab308';
@@ -114,7 +114,7 @@ const ServiceOrderList = () => {
         <Link to="/ordens-de-servico/nova" className="btn btn-primary">+ Nova O. S.</Link>
       </div>
 
-      {/* ÁREA DE FILTROS */}
+      {/* Filtros */}
       <div style={{
           backgroundColor: 'white', 
           padding: '1.5rem', 
@@ -142,7 +142,6 @@ const ServiceOrderList = () => {
                     name="equipamento" 
                     value={filters.equipamento} 
                     onChange={handleFilterChange} 
-                    // Placeholder removido
                     style={{padding: '8px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '4px'}}
                   />
               </div>
@@ -153,7 +152,6 @@ const ServiceOrderList = () => {
                     name="setor" 
                     value={filters.setor} 
                     onChange={handleFilterChange} 
-                    // Placeholder removido
                     style={{padding: '8px', width: '100%', border: '1px solid #cbd5e1', borderRadius: '4px'}}
                   />
               </div>
@@ -176,7 +174,6 @@ const ServiceOrderList = () => {
                   </select>
               </div>
 
-              {/* DATAS RENOMEADAS */}
               <div className="form-group" style={{flex: '1 1 130px'}}>
                   <label style={{fontSize: '0.85rem'}}>Data Abertura (Início)</label>
                   <input 
@@ -206,7 +203,7 @@ const ServiceOrderList = () => {
           </div>
       </div>
 
-      {/* TABELA DE RESULTADOS */}
+      {/* Tabela de resultados */}
       <div className="table-wrapper">
         {loading ? <p>Carregando...</p> : (
           <>

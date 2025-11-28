@@ -7,7 +7,6 @@ public class OrdemServicoDTO {
     private Long id;
     private String numeroOs;
     private Long idEquipamento;
-    // Novos campos para exibição bonita
     private String nomeEquipamento;
     private String fotoEquipamento;
     
@@ -24,7 +23,7 @@ public class OrdemServicoDTO {
 
     public OrdemServicoDTO() {}
 
-    // Getters e Setters para tudo, incluindo os novos
+    // Getters e setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNumeroOs() { return numeroOs; }

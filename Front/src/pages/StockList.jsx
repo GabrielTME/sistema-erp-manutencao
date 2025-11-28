@@ -47,7 +47,7 @@ const StockList = () => {
     loadInitialData();
   }, []);
 
-  // --- LÓGICA CORRIGIDA: GARANTIR HORAS TÉCNICAS ---
+  // Garantir horas técnicas
   const handleCreateService = async () => {
       const SERVICE_NAME = "Horas Técnicas de Manutenção";
 
@@ -59,7 +59,7 @@ const StockList = () => {
           return;
       }
 
-      // 2. Se não existe, cria automaticamente
+      // 2. Se não existe cria automaticamente
       try {
           await api.post('/servicos', { nome: SERVICE_NAME });
           alert('Item "Horas Técnicas" criado com sucesso!');
@@ -312,7 +312,7 @@ const StockList = () => {
         )}
       </div>
 
-      {/* MODAL FORMULÁRIO */}
+      {/* Modal formulário */}
       {[isAddModalOpen, isEditModalOpen].map((isOpen, index) => {
         if (!isOpen) return null;
         const isEdit = index === 1;

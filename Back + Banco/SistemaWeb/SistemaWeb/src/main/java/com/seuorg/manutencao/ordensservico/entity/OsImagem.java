@@ -12,7 +12,7 @@ public class OsImagem {
     @Column(name = "id_os")
     private Long idOs;
 
-    private String caminho; // URL/Path da foto
+    private String caminho; // URL/path da foto
 
     public OsImagem() {}
     public OsImagem(Long idOs, String caminho) { this.idOs = idOs; this.caminho = caminho; }

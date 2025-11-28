@@ -21,7 +21,7 @@ public class TecnicoController {
     @GetMapping
     public Page<TecnicoDTO> listar(@RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "10") int size) {
-        // Agora chama apenas o listar simples, sem filtro de string
+        // Chama apenas o listar simples sem filtro de string
         return service.listar(page, size);
     }
 

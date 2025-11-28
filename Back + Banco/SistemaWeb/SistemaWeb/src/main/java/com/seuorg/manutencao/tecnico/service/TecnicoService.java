@@ -38,7 +38,7 @@ public class TecnicoService {
         return toDTO(t);
     }
 
-    // Criar agora recebe ID da Categoria em vez de string
+    // Recebe ID da categoria em vez de string
     public TecnicoDTO criar(TecnicoCreateDTO dto) {
         TecnicoCategoria cat = categoriaRepository.findById(dto.getIdCategoria())
                 .orElseThrow(() -> new NoSuchElementException("Categoria não encontrada"));

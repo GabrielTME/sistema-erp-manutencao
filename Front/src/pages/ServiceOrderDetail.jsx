@@ -8,21 +8,21 @@ const ServiceOrderDetail = () => {
   const [activeTab, setActiveTab] = useState('principal');
   const [loading, setLoading] = useState(true);
 
-  // DADOS DA OS
+  // Dados da OS
   const [os, setOs] = useState(null);
   const [osItems, setOsItems] = useState([]);
   const [osImages, setOsImages] = useState([]);
   const [history, setHistory] = useState([]);
   
-  // DADOS AUXILIARES
+  // Dados auxiliaress
   const [allTechnicians, setAllTechnicians] = useState([]);
   const [stockItems, setStockItems] = useState([]);
 
-  // ESTADOS DE FORMULÁRIO
+  // Estados de formulário
   const [selectedTechId, setSelectedTechId] = useState('');
   const [itemForm, setItemForm] = useState({ idItemEstoque: '', quantidade: 1 });
 
-  // --- CARREGAMENTO ---
+  // Carregamento
   const loadData = async () => {
     try {
       setLoading(true);
@@ -57,7 +57,7 @@ const ServiceOrderDetail = () => {
     loadData();
   }, [id]);
 
-  // --- AÇÕES: PRINCIPAL ---
+  // Ações
   const handleUpdateOs = async () => {
     try {
       await api.put(`/ordens-servico/${id}`, os);
@@ -73,7 +73,7 @@ const ServiceOrderDetail = () => {
     setOs(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- AÇÕES: TÉCNICOS ---
+  // Técnicos
   const handleAddTechnician = async () => {
     if (!selectedTechId) return;
     const currentIds = os.tecnicos || [];
@@ -101,7 +101,7 @@ const ServiceOrderDetail = () => {
       }
   };
 
-  // --- AÇÕES: ITENS ---
+  // Itens
   const handleAddItem = async () => {
       if (!itemForm.idItemEstoque || itemForm.quantidade <= 0) return alert("Selecione item e quantidade.");
       
@@ -134,7 +134,7 @@ const ServiceOrderDetail = () => {
       }
   };
 
-  // --- AÇÕES: IMAGENS ---
+  // Imagens
   const handleUploadImage = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -162,7 +162,7 @@ const ServiceOrderDetail = () => {
       }
   };
 
-  // --- HELPERS ---
+  // Helpers
   const getStatusColor = (status) => {
     switch (status) {
       case 'EM_ANDAMENTO': return '#eab308';
@@ -214,7 +214,7 @@ const ServiceOrderDetail = () => {
          </div>
       </div>
 
-      {/* CABEÇALHO EDITÁVEL */}
+      {/* Cabeçalho */}
       <div className="os-detail-header">
          <div className="os-info-grid" style={{width: '100%', gridTemplateColumns: 'repeat(5, 1fr)'}}>
              <div>
@@ -240,23 +240,22 @@ const ServiceOrderDetail = () => {
          </div>
       </div>
 
-      {/* TABS */}
+      {/* Tabs */}
       <div className="tabs-header">
           <button className={`tab-btn ${activeTab === 'principal' ? 'active' : ''}`} onClick={() => setActiveTab('principal')}>Principal</button>
           <button className={`tab-btn ${activeTab === 'adicionais' ? 'active' : ''}`} onClick={() => setActiveTab('adicionais')}>Informações Adicionais</button>
           <button className={`tab-btn ${activeTab === 'observacoes' ? 'active' : ''}`} onClick={() => setActiveTab('observacoes')}>Observações</button>
           <button className={`tab-btn ${activeTab === 'historico' ? 'active' : ''}`} onClick={() => setActiveTab('historico')}>Histórico de Status</button>
-          {/* MUDANÇA: Imagens movida para o final */}
           <button className={`tab-btn ${activeTab === 'imagens' ? 'active' : ''}`} onClick={() => setActiveTab('imagens')}>Imagens</button>
       </div>
 
       <div className="tab-content">
           
-          {/* ABA PRINCIPAL */}
+          {/* Principal */}
           {activeTab === 'principal' && (
               <div>
                   
-                  {/* EQUIPAMENTO */}
+                  {/* Equipamento */}
                   <div style={{display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '20px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
                       {os.fotoEquipamento ? (
                           <img src={os.fotoEquipamento} alt="Equipamento" style={{width: 60, height: 60, objectFit: 'cover', borderRadius: '4px'}} />
@@ -269,7 +268,7 @@ const ServiceOrderDetail = () => {
                       </div>
                   </div>
 
-                  {/* 1. STATUS */}
+                  {/* 1. Status */}
                   <div className="form-group" style={{marginBottom: '2rem'}}>
                       <label>Status</label>
                       <select name="status" value={os.status} onChange={handleInputChange} className="form-select" style={{maxWidth: '300px'}}>
@@ -282,7 +281,7 @@ const ServiceOrderDetail = () => {
                       </select>
                   </div>
 
-                  {/* 2. TÉCNICOS */}
+                  {/* 2. Técnicos */}
                   <div className="form-group" style={{width: '100%', background: '#fff', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '1rem'}}>
                     <label>Técnicos Responsáveis</label>
                     <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
@@ -315,13 +314,13 @@ const ServiceOrderDetail = () => {
                     </div>
                  </div>
 
-                  {/* 3. PROBLEMA */}
+                  {/* 3. Problema */}
                   <div className="form-group">
                       <label>Descrição do Problema</label>
                       <textarea name="problema" rows="3" value={os.problema} onChange={handleInputChange} style={textAreaStyle} />
                   </div>
 
-                  {/* 4. PEÇAS E SERVIÇOS */}
+                  {/* 4. Peças e serviços */}
                   <div className="form-group" style={{width: '100%', background: '#fff', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '2rem'}}>
                       <label style={{marginBottom: '1rem', display: 'block', fontWeight: 'bold'}}>Peças/Serviços</label>
                       
@@ -391,7 +390,7 @@ const ServiceOrderDetail = () => {
               </div>
           )}
 
-          {/* --- ABA 2: INFORMAÇÕES ADICIONAIS --- */}
+          {/* Informações adicionais */}
           {activeTab === 'adicionais' && (
               <div>
                   <h4 style={sectionTitleStyle}>Informações Adicionais</h4>
@@ -407,7 +406,7 @@ const ServiceOrderDetail = () => {
               </div>
           )}
 
-          {/* --- ABA 3: OBSERVAÇÕES --- */}
+          {/* Observações */}
           {activeTab === 'observacoes' && (
               <div>
                   <h4 style={sectionTitleStyle}>Observações</h4>
@@ -425,7 +424,7 @@ const ServiceOrderDetail = () => {
               </div>
           )}
 
-          {/* --- ABA 4: HISTÓRICO --- */}
+          {/* Históricos */}
           {activeTab === 'historico' && (
               <div>
                   <ul style={{borderLeft: '2px solid #e2e8f0', paddingLeft: '20px', listStyle: 'none'}}>
@@ -441,14 +440,13 @@ const ServiceOrderDetail = () => {
               </div>
           )}
 
-          {/* --- ABA 5: IMAGENS (MOVIDA PARA O FIM) --- */}
+          {/* Imagens */}
           {activeTab === 'imagens' && (
               <div>
                   <h4 style={sectionTitleStyle}>Anexos e Imagens</h4>
                   <div style={{marginBottom: '20px', padding: '15px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', textAlign: 'center'}}>
                       <label htmlFor="img-upload" className="btn btn-secondary" style={{cursor: 'pointer'}}>+ Adicionar Imagem</label>
                       <input id="img-upload" type="file" accept="image/*" onChange={handleUploadImage} style={{display: 'none'}} />
-                      {/* MUDANÇA: Texto do formato */}
                       <p style={{fontSize: '0.85rem', color: '#64748b', marginTop: '10px'}}>Formatos suportados: .JPG, .PNG</p>
                   </div>
 

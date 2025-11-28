@@ -76,13 +76,13 @@ public class OrdemServicoService {
     public OrdemServicoDTO criar(OrdemServicoCreateDTO dto) {
         OrdemServico o = new OrdemServico();
         
-        // --- GERAÇÃO AUTOMÁTICA DE NÚMERO ---
+        // Geração automática de número
         SimpleDateFormat sdf = new SimpleDateFormat("ddMMyy");
         String prefixoData = "OS" + sdf.format(new Date());
         long countHoje = ordemRepo.countByNumeroOsStartingWith(prefixoData);
         String sequencial = String.format("%03d", countHoje + 1);
         o.setNumeroOs(prefixoData + sequencial);
-        // ------------------------------------
+        // ---
 
         o.setIdEquipamento(dto.getIdEquipamento());
         o.setProblema(dto.getProblema());
@@ -127,12 +127,11 @@ public class OrdemServicoService {
     public void excluir(Long id) {
         if (!ordemRepo.existsById(id)) throw new NoSuchElementException("OS não encontrada");
         osTecnicoRepo.deleteByIdOs(id);
-        // Se houver imagens ou itens, o banco pode reclamar se não tiver cascade, 
-        // mas para simplificar vamos assumir que o foco é a OS.
+        // Se houver imagens ou itens o banco pode reclamar se não tiver cascade 
         ordemRepo.deleteById(id);
     }
 
-    // --- TÉCNICOS ---
+    // Técnicos
     @Transactional
     public List<Long> atribuirTecnicos(Long idOs, List<Long> tecnicosIds) {
         if (!ordemRepo.existsById(idOs)) throw new NoSuchElementException("OS não encontrada");
@@ -146,7 +145,7 @@ public class OrdemServicoService {
         return inserted;
     }
 
-    // --- ITENS DA OS (PEÇAS E SERVIÇOS) ---
+    // Itens
     @Transactional
     public OsItemDTO adicionarItem(Long idOs, OsItemCreateDTO dto) {
         if (!ordemRepo.existsById(idOs)) throw new NoSuchElementException("OS não encontrada");
@@ -154,11 +153,11 @@ public class OrdemServicoService {
         ItemEstoque estoque = itemEstoqueRepo.findById(dto.getIdItemEstoque())
                 .orElseThrow(() -> new NoSuchElementException("Item de estoque não encontrado"));
 
-        // 1. Verifica se é Serviço (para não cobrar estoque)
+        // 1. Verifica se é serviço pra não cobrar estoque
         boolean isServico = "SERVICO".equals(estoque.getTipo());
 
         if (!isServico) {
-            // Se for peça física, valida e baixa estoque
+            // Se for peça física valida e baixa estoque
             if (estoque.getQuantidade() < dto.getQuantidade()) {
                 throw new IllegalArgumentException("Estoque insuficiente. Disponível: " + estoque.getQuantidade());
             }
@@ -166,7 +165,7 @@ public class OrdemServicoService {
             itemEstoqueRepo.save(estoque);
         }
 
-        // 2. Define o preço (Prioridade: Valor digitado > Valor do cadastro)
+        // 2. Define o preço (Valor digitado > valor do cadastro)
         Double precoFinal = (dto.getValorPersonalizado() != null) 
                             ? dto.getValorPersonalizado() 
                             : estoque.getValorUnitario();
@@ -189,7 +188,7 @@ public class OrdemServicoService {
         
         ItemEstoque estoque = item.getItemEstoque();
         
-        // Só devolve ao estoque se NÃO for serviço
+        // Só devolve ao estoque se não for serviço
         if (!"SERVICO".equals(estoque.getTipo())) {
             estoque.setQuantidade(estoque.getQuantidade() + item.getQuantidade());
             itemEstoqueRepo.save(estoque);
@@ -202,7 +201,7 @@ public class OrdemServicoService {
         return osItemRepo.findByIdOs(idOs).stream().map(this::mapItemToDto).collect(Collectors.toList());
     }
 
-    // --- IMAGENS DA OS ---
+    // Imagens
     public List<OsImagem> listarImagens(Long idOs) {
         return imagemRepo.findByIdOs(idOs).stream().map(img -> {
             // Adiciona o domínio completo à URL da imagem se for local
@@ -229,7 +228,7 @@ public class OrdemServicoService {
         imagemRepo.deleteById(idImagem);
     }
 
-    // --- HISTÓRICO ---
+    // Histórico
     public List<OsHistoricoDTO> listarHistorico(Long idOs) {
         return historicoRepo.findByIdOsOrderByDataEventoDesc(idOs).stream().map(h -> {
             OsHistoricoDTO dto = new OsHistoricoDTO();
@@ -263,7 +262,7 @@ public class OrdemServicoService {
         return out;
     }
 
-    // --- MAPPERS E UTILS ---
+    // Mappers e utils
     private String salvarArquivo(MultipartFile arquivo) {
         if (arquivo == null || arquivo.isEmpty()) return null;
         try {

@@ -73,7 +73,7 @@ public class EquipamentoService {
             e.setMarca(marca);
         }
 
-        // Se enviou uma nova foto, substitui a url. Se não enviou, mantém a antiga.
+        // Se enviou uma nova foto, substitui a URL. Se não enviou, mantém a antiga.
         if (arquivoFoto != null && !arquivoFoto.isEmpty()) {
             String urlFoto = salvarArquivo(arquivoFoto);
             e.setFoto(urlFoto);
@@ -89,7 +89,7 @@ public class EquipamentoService {
         repository.deleteById(id);
     }
 
-    // --- Métodos Auxiliares ---
+    // Métodos auxiliares
 
     private EquipamentoDTO converterParaDTO(Equipamento e) {
         Marca m = e.getMarca();
@@ -97,7 +97,7 @@ public class EquipamentoService {
             ? new MarcaDTO(m.getId(), m.getNome(), m.getEspecificacoes())
             : null;
             
-        // Se a foto for um caminho local (/imagens/...), adiciona o domínio na frente para o Front
+        // Se a foto for um caminho local (/imagens/...), adiciona o domínio na frente para o front
         String fotoUrl = e.getFoto();
         if (fotoUrl != null && !fotoUrl.startsWith("http")) {
             String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
@@ -111,7 +111,7 @@ public class EquipamentoService {
         if (arquivo == null || arquivo.isEmpty()) return null;
 
         try {
-            // Gera nome único: "uuid_nomedoarquivo.jpg"
+            // Gera nome único uuid_nomedoarquivo.jpg
             String nomeArquivo = UUID.randomUUID().toString() + "_" + arquivo.getOriginalFilename();
             Files.copy(arquivo.getInputStream(), this.rootLocation.resolve(nomeArquivo));
             return "/imagens/" + nomeArquivo; // Salva o caminho relativo no banco

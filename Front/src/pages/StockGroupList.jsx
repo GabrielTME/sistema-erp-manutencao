@@ -7,20 +7,20 @@ const StockGroupList = () => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Estados para MODAL DE GRUPO
+  // Estados para modal de grupo
   const [isGroupModalOpen, setGroupModalOpen] = useState(false);
   const [groupName, setGroupName] = useState('');
 
-  // Estados para MODAL DE SUBGRUPO
+  // Estados para modal de subgrupo
   const [isSubModalOpen, setSubModalOpen] = useState(false);
   const [subName, setSubName] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState(null); 
   
-  // Para expandir/visualizar subgrupos
+  // Para expandir subgrupos
   const [expandedGroupId, setExpandedGroupId] = useState(null);
   const [subgroupsMap, setSubgroupsMap] = useState({}); 
 
-  // --- CARREGAR DADOS ---
+  // Carregar dados
   const fetchGroups = async () => {
     try {
       setLoading(true);
@@ -46,7 +46,7 @@ const StockGroupList = () => {
     fetchGroups();
   }, []);
 
-  // --- AÇÕES DE GRUPO ---
+  // Ações de grupo
   const handleCreateGroup = async () => {
     if (!groupName) return alert('Digite o nome do grupo');
     try {
@@ -71,7 +71,7 @@ const StockGroupList = () => {
     }
   };
 
-  // --- AÇÕES DE SUBGRUPO ---
+  // Ações de subgrupo
   const openSubModal = (idGrupo) => {
     setSelectedGroupId(idGrupo);
     setSubName('');
@@ -103,7 +103,7 @@ const StockGroupList = () => {
     }
   };
 
-  // --- INTERFACE ---
+  // Interface
   const toggleExpand = (idGrupo) => {
     if (expandedGroupId === idGrupo) {
       setExpandedGroupId(null);
@@ -171,11 +171,10 @@ const StockGroupList = () => {
         )}
       </div>
 
-      {/* Modal Grupo */}
+      {/* Modal grupo */}
       <Modal isOpen={isGroupModalOpen} onClose={() => setGroupModalOpen(false)} title="Novo Grupo">
          <div className="form-group">
             <label>Nome do Grupo</label>
-            {/* MUDANÇA 2: Placeholder ajustado */}
             <input value={groupName} onChange={e => setGroupName(e.target.value)} placeholder="Ex.: Elétrica" />
          </div>
          <div className="modal-actions">
@@ -184,11 +183,10 @@ const StockGroupList = () => {
          </div>
       </Modal>
 
-      {/* Modal Subgrupo */}
+      {/* Modal subgrupo */}
       <Modal isOpen={isSubModalOpen} onClose={() => setSubModalOpen(false)} title="Novo Subgrupo">
          <div className="form-group">
             <label>Nome do Subgrupo</label>
-            {/* MUDANÇA 3: Placeholder ajustado */}
             <input value={subName} onChange={e => setSubName(e.target.value)} placeholder="Ex.: Cabos" />
          </div>
          <div className="modal-actions">

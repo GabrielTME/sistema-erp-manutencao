@@ -28,7 +28,7 @@ const TechnicianCategoryList = () => {
   const handleAddCategory = async () => {
     if (!name) return alert('Nome é obrigatório');
     try {
-      // O Backend espera { "nome": "..." }
+      // O backend espera { "nome": "..." }
       await api.post('/tecnicos/categorias', { nome: name });
       alert('Categoria criada!');
       setName('');

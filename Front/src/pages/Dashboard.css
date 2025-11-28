@@ -58,14 +58,13 @@
     margin-bottom: 0.5rem;
 }
 
-/* CORES DOS CARDS */
+/* Cores dos cards */
 .card-icon.blue { background-color: #dbeafe; color: #2563eb; }
 .card-icon.green { background-color: #dcfce7; color: #16a34a; }
 .card-icon.orange { background-color: #ffedd5; color: #ea580c; }
 .card-icon.purple { background-color: #f3e8ff; color: #9333ea; }
 
-/* COR VIBRANTE: Vermelho Sólido (Sem sombra) */
 .card-icon.red { 
     background-color: #ef4444; /* Vermelho vivo */
-    color: #ffffff; /* Ícone Branco */
+    color: #ffffff; /* Ícone branco */
 }

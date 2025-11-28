@@ -23,7 +23,7 @@ public class OrdemServicoController {
         this.service = service;
     }
 
-    // --- CRUD BÁSICO DA O.S. ---
+    // Crud básico da OS
 
     @GetMapping
     public Page<OrdemServicoDTO> listar(@RequestParam(defaultValue = "0") int page,
@@ -52,14 +52,14 @@ public class OrdemServicoController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- TÉCNICOS ---
+    // Técnicos
 
     @PostMapping("/{id_os}/tecnicos")
     public List<Long> atribuirTecnicos(@PathVariable("id_os") Long idOs, @RequestBody List<Long> tecnicos) {
         return service.atribuirTecnicos(idOs, tecnicos);
     }
 
-    // --- HISTÓRICO ---
+    // Histórico
 
     @GetMapping("/{id_os}/historico")
     public List<OsHistoricoDTO> listarHistorico(@PathVariable("id_os") Long idOs) {
@@ -71,7 +71,7 @@ public class OrdemServicoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.adicionarHistorico(idOs, dto));
     }
 
-    // --- ITENS (PEÇAS E SERVIÇOS) ---
+    // Itens
 
     @GetMapping("/{id_os}/itens")
     public List<OsItemDTO> listarItens(@PathVariable("id_os") Long idOs) {
@@ -89,7 +89,7 @@ public class OrdemServicoController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- IMAGENS (FOTOS DA O.S.) ---
+    // Imagens
 
     @GetMapping("/{id_os}/imagens")
     public List<OsImagem> listarImagens(@PathVariable("id_os") Long idOs) {

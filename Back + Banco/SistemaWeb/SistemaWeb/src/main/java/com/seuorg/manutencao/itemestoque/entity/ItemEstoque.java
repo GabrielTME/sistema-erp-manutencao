@@ -29,9 +29,8 @@ public class ItemEstoque {
 
     private String foto;
 
-    // CAMPO ADICIONADO DE VOLTA PARA O SISTEMA FUNCIONAR
     @Column(name = "tipo")
-    private String tipo; // Pode ser "PRODUTO" ou "SERVICO"
+    private String tipo; // Pode ser PRODUTO ou SERVICO
 
     @ManyToOne
     @JoinColumn(name = "id_subgrupo")
@@ -51,7 +50,7 @@ public class ItemEstoque {
         this.subgrupo = subgrupo;
     }
 
-    // Getters e Setters
+    // Getters e setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     
@@ -73,7 +72,7 @@ public class ItemEstoque {
     public String getFoto() { return foto; }
     public void setFoto(String foto) { this.foto = foto; }
     
-    // Getter e Setter do TIPO (que corrigem o erro)
+    // Getter e setter do TIPO
     public String getTipo() { return tipo; }
     public void setTipo(String tipo) { this.tipo = tipo; }
 

@@ -11,11 +11,11 @@ const BrandList = () => {
   const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
 
-  // Estados dos Formulários
+  // Estados dos formulários
   const [currentBrand, setCurrentBrand] = useState(null);
   const [formData, setFormData] = useState({ name: '', specifications: '' });
 
-  // --- BUSCAR DADOS ---
+  // Buscar dados
   const fetchBrands = async () => {
     try {
       setLoading(true);
@@ -33,7 +33,7 @@ const BrandList = () => {
     fetchBrands();
   }, []);
 
-  // --- HANDLERS ---
+  // Handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -53,7 +53,7 @@ const BrandList = () => {
     setEditModalOpen(true);
   };
 
-  // --- AÇÕES DE API ---
+  // Ações de API
 
   const handleAddBrand = async () => {
     if (!formData.name) {
@@ -198,7 +198,7 @@ const BrandList = () => {
          </div>
       </Modal>
 
-      {/* MODAL EDITAR */}
+      {/* Modal editar */}
       <Modal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)} title="Editar Marca">
          <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
             Modifique as informações da marca.

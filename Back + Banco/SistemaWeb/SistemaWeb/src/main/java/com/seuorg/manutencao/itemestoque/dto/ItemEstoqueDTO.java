@@ -9,7 +9,7 @@ public class ItemEstoqueDTO {
     private Double valorUnitario;
     private String foto;
     
-    // Dados de Classificação
+    // Dados de classificação
     private Long idSubgrupo;
     private String nomeSubgrupo;
     private Long idGrupo;
