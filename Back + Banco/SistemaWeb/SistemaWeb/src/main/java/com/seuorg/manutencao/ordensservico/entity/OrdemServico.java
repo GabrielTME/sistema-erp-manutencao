@@ -2,7 +2,6 @@ package com.seuorg.manutencao.ordensservico.entity;
 
 import jakarta.persistence.*;
 import java.util.Date;
-import java.util.List;
 
 @Entity
 @Table(name = "ordens_servico")

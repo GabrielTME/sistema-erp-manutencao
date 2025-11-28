@@ -57,7 +57,7 @@ const NewServiceOrder = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- LÓGICA DE TÉCNICOS ---
+  // --- TÉCNICOS ---
   const handleAddTechnician = () => {
     if (!selectedTechId) return;
     if (assignedTechnicians.some(t => t.id === Number(selectedTechId))) {
@@ -75,7 +75,7 @@ const NewServiceOrder = () => {
       setAssignedTechnicians(assignedTechnicians.filter(t => t.id !== idToRemove));
   };
 
-  // --- LÓGICA DE PEÇAS E SERVIÇOS ---
+  // --- PEÇAS E SERVIÇOS ---
 
   const handlePartSelection = (e) => {
       const id = e.target.value;
@@ -91,22 +91,20 @@ const NewServiceOrder = () => {
       }
   };
 
-  // Lógica Automática de Horas Técnicas
+  // Horas Técnicas
   const handleSelectHorasTecnicas = async () => {
       const SERVICE_NAME = "Horas Técnicas de Manutenção";
       
       let serviceItem = stockItems.find(i => i.nome === SERVICE_NAME);
 
-      // Se não existir, cria no backend
       if (!serviceItem) {
           try {
               const res = await api.post('/servicos', { nome: SERVICE_NAME });
               serviceItem = res.data;
-              // Adiciona na lista local imediatamente
               setStockItems(prev => [...prev, serviceItem]);
           } catch (error) {
               console.error("Erro ao criar serviço:", error);
-              alert("Erro ao gerar item de serviço. Verifique se o backend foi reiniciado.");
+              alert("Erro ao gerar item de serviço.");
               return;
           }
       }
@@ -114,19 +112,14 @@ const NewServiceOrder = () => {
       if (serviceItem) {
           setSelectedPartId(serviceItem.id);
           setPartQuantity(1);
-          setPartUnitPrice(''); // Limpa para digitar
-          
-          setTimeout(() => {
-              if (priceInputRef.current) {
-                  priceInputRef.current.focus();
-              }
-          }, 100);
+          setPartUnitPrice(serviceItem.valorUnitario); 
       }
   };
 
   const handleAddPart = () => {
+      // Validação permite 0 caso o serviço seja gratuito ou esteja zerado no cadastro
       if (!selectedPartId || partQuantity <= 0 || partUnitPrice === '') {
-          alert("Preencha o item, a quantidade e o valor.");
+          alert("Selecione um item.");
           return;
       }
       
@@ -160,10 +153,12 @@ const NewServiceOrder = () => {
       setAssignedParts(assignedParts.filter(p => p.id !== idToRemove));
   };
 
+  // Helper para formatar moeda
   const formatMoney = (value) => `R$${Number(value).toFixed(2).replace('.', ',')}`;
+  
   const totalGeralPecas = assignedParts.reduce((acc, item) => acc + (item.precoPraticado * item.qtdSolicitada), 0);
 
-  // --- SALVAR TUDO ---
+  // --- SALVAR ---
   const handleSubmit = async () => {
     if (!formData.idEquipamento) {
       alert("Selecione o Equipamento.");
@@ -195,7 +190,7 @@ const NewServiceOrder = () => {
       navigate('/ordens-de-servico'); 
     } catch (error) {
       console.error(error);
-      alert("Erro ao abrir OS. Verifique os dados.");
+      alert("Erro ao abrir OS.");
     }
   };
 
@@ -308,48 +303,49 @@ const NewServiceOrder = () => {
             
             <div style={{display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'flex-end', flexWrap: 'wrap'}}>
                 <div style={{flex: 4, minWidth: '200px'}}>
-                    <label style={{fontSize: '0.8rem', color: '#64748b'}}>Item (Estoque)</label>
+                    <label style={{fontSize: '0.8rem', color: '#64748b'}}>Descrição</label>
                     <select value={selectedPartId} onChange={handlePartSelection} className="form-select" style={{width: '100%'}}>
-                        <option value="">Selecione...</option>
+                        <option value="">Selecione um produto ou serviço</option>
                         {stockItems.map(i => (
-                            <option key={i.id} value={i.id}>{i.nome} {i.codigoProduto.startsWith('SRV') ? '(Serviço)' : `(Est: ${i.quantidade})`}</option>
+                            <option key={i.id} value={i.id}>{i.nome} {i.codigoProduto.startsWith('SRV') ? '(Serviço)' : `(Estoque: ${i.quantidade})`}</option>
                         ))}
                     </select>
                 </div>
                 <div style={{flex: 1, minWidth: '80px'}}>
-                    <label style={{fontSize: '0.8rem', color: '#64748b'}}>Qtd.</label>
+                    <label style={{fontSize: '0.8rem', color: '#64748b'}}>Quantidade</label>
                     <input type="number" min="1" value={partQuantity} onChange={(e) => setPartQuantity(e.target.value)} style={{...inputStyle, padding: '0.5rem'}} />
                 </div>
                 <div style={{flex: 2, minWidth: '100px'}}>
                     <label style={{fontSize: '0.8rem', color: '#64748b'}}>Valor Unit. (R$)</label>
+                    
+                    {/* INPUT ALTERADO PARA TEXTO FORMATADO READ-ONLY */}
                     <input 
                         ref={priceInputRef}
-                        type="number" step="0.01" 
-                        value={partUnitPrice} 
-                        onChange={(e) => setPartUnitPrice(e.target.value)} 
-                        style={{...inputStyle, padding: '0.5rem'}} 
-                        placeholder="0.00"
+                        type="text" 
+                        value={partUnitPrice !== '' ? formatMoney(partUnitPrice) : ''} 
+                        readOnly 
+                        style={{...inputStyle, padding: '0.5rem', backgroundColor: '#e9ecef', color: '#6c757d', cursor: 'not-allowed'}}
+                        placeholder="R$0,00"
                     />
                 </div>
             </div>
 
-            {/* BOTÕES DE AÇÃO */}
             <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginBottom: '15px'}}>
                 <button className="btn btn-secondary" onClick={handleSelectHorasTecnicas} title="Preencher automático">Horas Técnicas</button>
                 <button className="btn btn-primary" onClick={handleAddPart}>+ Adicionar Item</button>
             </div>
             
-            {/* TABELA COM AS COLUNAS CORRIGIDAS */}
+            {/* TABELA DE ITENS (VISIBILIDADE CONDICIONAL) */}
             {assignedParts.length > 0 ? (
                 <>
                 <table style={{width: '100%', borderCollapse: 'collapse', background: 'white', borderRadius: '4px', overflow: 'hidden'}}>
                     <thead>
                         <tr style={{background: '#e2e8f0', fontSize: '0.85rem', color: '#475569'}}>
-                            <th style={{padding: '8px', textAlign: 'left'}}>Código Produto</th>
+                            <th style={{padding: '8px', textAlign: 'left'}}>Código Produto/Serviço</th>
                             <th style={{padding: '8px', textAlign: 'left'}}>Descrição</th>
                             <th style={{padding: '8px', textAlign: 'center'}}>Quantidade</th>
-                            <th style={{padding: '8px', textAlign: 'right'}}>Valor Unitário</th>
-                            <th style={{padding: '8px', textAlign: 'right'}}>Valor Total</th>
+                            <th style={{padding: '8px', textAlign: 'right'}}>Valor Unitário (R$)</th>
+                            <th style={{padding: '8px', textAlign: 'right'}}>Valor Total (R$)</th>
                             <th style={{padding: '8px', textAlign: 'center'}}>Ações</th>
                         </tr>
                     </thead>
@@ -371,7 +367,7 @@ const NewServiceOrder = () => {
                     </tbody>
                 </table>
                 <div style={{textAlign: 'right', marginTop: '10px', fontSize: '1.1rem', fontWeight: 'bold', color: '#1e293b'}}>
-                    Total: {formatMoney(totalGeralPecas)}
+                    Total Geral: {formatMoney(totalGeralPecas)}
                 </div>
                 </>
             ) : (
@@ -382,7 +378,7 @@ const NewServiceOrder = () => {
          </div>
 
          <div className="modal-actions" style={{justifyContent: 'flex-end', width: '100%', marginTop: '1rem'}}>
-             <button className="btn btn-primary" onClick={handleSubmit}>Abrir Ordem de Serviço</button>
+             <button className="btn btn-primary" onClick={handleSubmit}>Salvar e Finalizar</button>
          </div>
       </div>
     </div>
