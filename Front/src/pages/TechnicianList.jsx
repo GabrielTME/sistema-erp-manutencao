@@ -20,11 +20,9 @@ const TechnicianList = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Busca categorias para o select
       const cats = await api.get('/tecnicos/categorias');
       setCategories(cats.data);
 
-      // Busca técnicos
       const tecs = await api.get('/tecnicos?size=100');
       setTechnicians(tecs.data.content);
     } catch (error) {
@@ -107,22 +105,22 @@ const TechnicianList = () => {
       </div>
 
       <div className="table-wrapper">
-        {loading ? <p>Carregando...</p> : (
-          <table>
+        {loading ? <p style={{padding: '1.5rem'}}>Carregando...</p> : (
+          <table style={{width: '100%', tableLayout: 'fixed'}}>
             <thead>
               <tr>
-                <th>Nome</th>
-                <th>Categoria</th>
-                <th>Ações</th>
+                <th style={{width: '40%', textAlign: 'left', paddingLeft: '2rem'}}>Nome</th>
+                <th style={{width: '40%', textAlign: 'left'}}>Categoria</th>
+                <th style={{width: '20%', textAlign: 'center'}}>Ações</th>
               </tr>
             </thead>
             <tbody>
               {technicians.length > 0 ? (
                 technicians.map(t => (
                   <tr key={t.id}>
-                    <td>{t.nome}</td>
+                    <td style={{paddingLeft: '2rem', fontWeight: 'bold'}}>{t.nome}</td>
                     <td>{t.especialidade}</td> 
-                    <td>
+                    <td style={{textAlign: 'center'}}>
                       <button className="btn btn-secondary" onClick={() => openEdit(t)}>Editar</button>
                       <button className="btn btn-danger" style={{marginLeft: 5}} onClick={() => handleDelete(t.id)}>Excluir</button>
                     </td>
@@ -130,7 +128,7 @@ const TechnicianList = () => {
                 ))
               ) : (
                  <tr>
-                    <td colSpan="3" style={{textAlign: 'center'}}>Nenhum técnico cadastrado.</td>
+                    <td colSpan="3" style={{textAlign: 'center', padding: '2rem', color: '#64748b'}}>Nenhum técnico cadastrado.</td>
                  </tr>
               )}
             </tbody>
@@ -138,13 +136,18 @@ const TechnicianList = () => {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal (reutilizado) */}
       {[isAddModalOpen, isEditModalOpen].map((isOpen, index) => {
         if (!isOpen) return null;
         const isEdit = index === 1;
         return (
           <Modal key={index} isOpen={true} onClose={() => isEdit ? setEditModalOpen(false) : setAddModalOpen(false)} 
-                 title={isEdit ? "Editar Técnico" : "Novo Técnico"}>
+                 title={isEdit ? "Editar Técnico" : "Adicionar Técnico"}>
+             
+             <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
+                {isEdit ? "Modifique os dados do técnico." : "Preencha os dados do novo técnico."}
+             </p>
+
              <div className="form-group">
                 <label>Nome</label>
                 <input name="nome" value={formData.nome} onChange={handleInputChange} />
@@ -161,7 +164,9 @@ const TechnicianList = () => {
              </div>
              <div className="modal-actions">
                <button className="btn btn-secondary" onClick={() => isEdit ? setEditModalOpen(false) : setAddModalOpen(false)}>Cancelar</button>
-               <button className="btn btn-primary" onClick={() => handleSave(isEdit)}>Salvar</button>
+               <button className="btn btn-primary" onClick={() => handleSave(isEdit)}>
+                   {isEdit ? 'Salvar' : 'Adicionar'}
+               </button>
              </div>
           </Modal>
         );

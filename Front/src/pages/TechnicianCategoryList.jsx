@@ -28,7 +28,6 @@ const TechnicianCategoryList = () => {
   const handleAddCategory = async () => {
     if (!name) return alert('Nome é obrigatório');
     try {
-      // O backend espera { "nome": "..." }
       await api.post('/tecnicos/categorias', { nome: name });
       alert('Categoria criada!');
       setName('');
@@ -54,41 +53,56 @@ const TechnicianCategoryList = () => {
     <div className="container">
       <div className="page-header">
         <div className="page-header-left">
-           <Link to="/" className="btn btn-secondary btn-back">&larr; Voltar</Link>
+           <Link to="/tecnicos" className="btn btn-secondary btn-back">&larr; Voltar para Técnicos</Link>
            <h1>Categorias de Técnicos</h1>
         </div>
         <button className="btn btn-primary" onClick={() => setAddModalOpen(true)}>+ Nova Categoria</button>
       </div>
 
       <div className="table-wrapper">
-        {loading ? <p>Carregando...</p> : (
-          <table>
+        {loading ? <p style={{padding: '1.5rem'}}>Carregando...</p> : (
+          <table style={{width: '100%', tableLayout: 'fixed'}}>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Ações</th>
+                <th style={{width: '15%', textAlign: 'left', paddingLeft: '2rem'}}>ID</th>
+                <th style={{width: '60%', textAlign: 'left'}}>Nome da Categoria</th>
+                <th style={{width: '25%', textAlign: 'center'}}>Ações</th>
               </tr>
             </thead>
             <tbody>
-              {categories.map(cat => (
-                <tr key={cat.id}>
-                  <td><span className="id-tag">{cat.id}</span></td>
-                  <td>{cat.nome}</td>
-                  <td>
-                    <button className="btn btn-danger" onClick={() => handleDelete(cat.id)}>Excluir</button>
-                  </td>
-                </tr>
-              ))}
+              {categories.length > 0 ? (
+                categories.map(cat => (
+                  <tr key={cat.id}>
+                    <td style={{paddingLeft: '2rem'}}>
+                        <span style={{
+                            backgroundColor: '#e2e8f0', color: '#475569', padding: '4px 8px',
+                            borderRadius: '4px', fontWeight: 'bold', fontSize: '0.85rem',
+                            fontFamily: 'monospace', display: 'inline-block'
+                        }}>
+                            {cat.id}
+                        </span>
+                    </td>
+                    <td><strong>{cat.nome}</strong></td>
+                    <td style={{textAlign: 'center'}}>
+                      <button className="btn btn-danger" onClick={() => handleDelete(cat.id)}>Excluir</button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr><td colSpan="3" style={{textAlign: 'center', padding: '2rem', color: '#64748b'}}>Nenhuma categoria cadastrada.</td></tr>
+              )}
             </tbody>
           </table>
         )}
       </div>
 
-      <Modal isOpen={isAddModalOpen} onClose={() => setAddModalOpen(false)} title="Nova Categoria">
+      <Modal isOpen={isAddModalOpen} onClose={() => setAddModalOpen(false)} title="Adicionar Categoria">
+        <p style={{color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem', marginTop: '-0.5rem'}}>
+            Preencha o nome da nova categoria de especialidade.
+        </p>
         <div className="form-group">
           <label>Nome da Categoria</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Eletricista" />
+          <input type="text" value={name} onChange={e => setName(e.target.value)} />
         </div>
         <div className="modal-actions">
           <button className="btn btn-secondary" onClick={() => setAddModalOpen(false)}>Cancelar</button>

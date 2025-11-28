@@ -38,7 +38,6 @@ public class OrdemServicoService {
     private final ItemEstoqueRepository itemEstoqueRepo;
     private final OsImagemRepository imagemRepo;
     
-    // Pasta onde as imagens serão salvas
     private final Path rootLocation = Paths.get("imagens");
 
     public OrdemServicoService(OrdemServicoRepository ordemRepo, OsTecnicoRepository osTecnicoRepo,
@@ -54,7 +53,6 @@ public class OrdemServicoService {
         this.itemEstoqueRepo = itemEstoqueRepo;
         this.imagemRepo = imagemRepo;
         
-        // Garante que a pasta de imagens exista
         try {
             Files.createDirectories(rootLocation);
         } catch (IOException e) {
@@ -96,7 +94,7 @@ public class OrdemServicoService {
         o.setObservacoes(dto.getObservacoes());
         ordemRepo.save(o);
 
-        criarHistoricoInterno(o.getId(), "OS Criada", "Ordem de serviço aberta com status " + dto.getStatus());
+        criarHistoricoInterno(o.getId(), "O. S. criada", "Ordem de serviço aberta com status " + dto.getStatus());
 
         return buscar(o.getId());
     }
@@ -127,7 +125,6 @@ public class OrdemServicoService {
     public void excluir(Long id) {
         if (!ordemRepo.existsById(id)) throw new NoSuchElementException("OS não encontrada");
         osTecnicoRepo.deleteByIdOs(id);
-        // Se houver imagens ou itens o banco pode reclamar se não tiver cascade 
         ordemRepo.deleteById(id);
     }
 
@@ -145,7 +142,7 @@ public class OrdemServicoService {
         return inserted;
     }
 
-    // Itens
+    // Itens da O. S. (peças e serviços)
     @Transactional
     public OsItemDTO adicionarItem(Long idOs, OsItemCreateDTO dto) {
         if (!ordemRepo.existsById(idOs)) throw new NoSuchElementException("OS não encontrada");
@@ -153,11 +150,9 @@ public class OrdemServicoService {
         ItemEstoque estoque = itemEstoqueRepo.findById(dto.getIdItemEstoque())
                 .orElseThrow(() -> new NoSuchElementException("Item de estoque não encontrado"));
 
-        // 1. Verifica se é serviço pra não cobrar estoque
         boolean isServico = "SERVICO".equals(estoque.getTipo());
 
         if (!isServico) {
-            // Se for peça física valida e baixa estoque
             if (estoque.getQuantidade() < dto.getQuantidade()) {
                 throw new IllegalArgumentException("Estoque insuficiente. Disponível: " + estoque.getQuantidade());
             }
@@ -165,7 +160,6 @@ public class OrdemServicoService {
             itemEstoqueRepo.save(estoque);
         }
 
-        // 2. Define o preço (Valor digitado > valor do cadastro)
         Double precoFinal = (dto.getValorPersonalizado() != null) 
                             ? dto.getValorPersonalizado() 
                             : estoque.getValorUnitario();
@@ -188,7 +182,6 @@ public class OrdemServicoService {
         
         ItemEstoque estoque = item.getItemEstoque();
         
-        // Só devolve ao estoque se não for serviço
         if (!"SERVICO".equals(estoque.getTipo())) {
             estoque.setQuantidade(estoque.getQuantidade() + item.getQuantidade());
             itemEstoqueRepo.save(estoque);
@@ -204,7 +197,6 @@ public class OrdemServicoService {
     // Imagens
     public List<OsImagem> listarImagens(Long idOs) {
         return imagemRepo.findByIdOs(idOs).stream().map(img -> {
-            // Adiciona o domínio completo à URL da imagem se for local
             if (img.getCaminho() != null && !img.getCaminho().startsWith("http")) {
                 String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
                 img.setCaminho(baseUrl + img.getCaminho());
@@ -216,9 +208,7 @@ public class OrdemServicoService {
     @Transactional
     public OsImagem adicionarImagem(Long idOs, MultipartFile arquivo) {
         if (!ordemRepo.existsById(idOs)) throw new NoSuchElementException("OS não encontrada");
-        
         String urlFoto = salvarArquivo(arquivo);
-        
         OsImagem img = new OsImagem(idOs, urlFoto);
         return imagemRepo.save(img);
     }
@@ -262,7 +252,7 @@ public class OrdemServicoService {
         return out;
     }
 
-    // Mappers e utils
+    // Mappers
     private String salvarArquivo(MultipartFile arquivo) {
         if (arquivo == null || arquivo.isEmpty()) return null;
         try {
